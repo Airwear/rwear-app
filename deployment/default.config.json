@@ -1,0 +1,27 @@
+{
+    "remote": {
+        "php": "php",
+        "artisan": "{{rsync.0.dest}}/artisan",
+        "log": "{{rsync.0.dest}}/deployments.log"
+    },
+    "commands": {
+        "local_pre_rsync": [
+            "composer install --no-dev --no-scripts -o",
+            "npm run prod"
+        ],
+        "remote_pre_rsync": [
+            "{{remote.php}} {{remote.artisan}} optimize:clear"
+        ],
+        "remote_post_rsync": [
+            "{{remote.php}} {{remote.artisan}} package:discover",
+            "{{remote.php}} {{remote.artisan}} optimize",
+            "{{remote.php}} {{remote.artisan}} migrate --force",
+            "{{remote.php}} {{remote.artisan}} init:cover",
+            "{{remote.php}} {{remote.artisan}} optimize:clear"
+        ],
+        "local_post_rsync": [
+            "composer install --no-scripts -o",
+            "npm run dev"
+        ]
+    }
+}

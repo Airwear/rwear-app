@@ -1,0 +1,37 @@
+{
+    "remote": {
+        "user": "frenvwhq",
+        "host": "209.16.158.158",
+        "port": "5022"
+    },
+    "rsync": [
+        {
+            "src": "./",
+            "dest": "/home/frenvwhq/www/octet-group.org/rwear-sport.octet-group.org",
+            "filters": [
+                "- .git*",
+                "+ /app/",
+                "+ /bootstrap/",
+                "- /bootstrap/cache/",
+                "+ /config/",
+                "+ /database/",
+                "+ /public/",
+                "- /public/storage",
+                "+ /resources/",
+                "+ /routes/",
+                "+ /vendor/",
+                "+ /storage/app/",
+                "- /vendor/**/spec/",
+                "- /vendor/**/test/",
+                "- /vendor/**/tests/",
+                "- /vendor/**/Tests/",
+                "+ /artisan",
+                "+ /changelog.md",
+                "+ /composer.json",
+                "+ /composer.lock",
+                "+ /version",
+                "- /*"
+            ]
+        }
+    ]
+}

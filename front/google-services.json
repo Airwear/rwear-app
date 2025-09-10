@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "79032548455",
+    "project_id": "rwear-47e47",
+    "storage_bucket": "rwear-47e47.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:79032548455:android:203f57e85030963ae528c2",
+        "android_client_info": {
+          "package_name": "com.letanou.rwear_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACfRh1nezNRd3W53K1vJYp4JXeqqcinlg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
