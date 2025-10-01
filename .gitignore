@@ -1,25 +1,18 @@
-/node_modules
-/public/hot
-/public/storage
-/storage/*.key
-/vendor
+# Node modules
+node_modules/
+
+# Android build
+android/.gradle/
+android/app/build/
+android/local.properties
+android/gradlew
+android/gradlew.bat
+android/gradle/
+
+# Logs
+*.log
+*.keystore
+
+# Misc
 .env
-.env.backup
-.phpunit.result.cache
-docker-compose.override.yml
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-/.idea
-/.vscode
-/storage/framework/cache
-_ide_helper.php
-.idea/
-/storage/
-/storage/trainings-files
-/storage/framework
-/public/css
-/public/js
-/sftp
-/node_modules/
+.DS_Store
