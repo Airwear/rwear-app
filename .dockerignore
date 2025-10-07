@@ -1,0 +1,18 @@
+### Laravel template
+/vendor/
+node_modules/
+npm-debug.log
+yarn-error.log
+
+app/storage/
+
+# Laravel 5 & Lumen specific
+public/storage
+
+storage/*.key
+
+Homestead.yaml
+Homestead.json
+/.vagrant
+.phpunit.result.cache
+

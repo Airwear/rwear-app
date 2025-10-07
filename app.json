@@ -1,5 +1,6 @@
 {
   "expo": {
+<<<<<<< HEAD
     "name": "Rwear App",
     "slug": "rwear-app",
     "version": "1.0.3",
@@ -67,5 +68,65 @@
         "projectId": "768bf314-3231-4f48-ac91-e4afb1acc830"
       }
     }
+=======
+    "name": "Rwear",
+    "slug": "rwear-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.airwear.rwear",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Cette app nécessite l'accès à la caméra pour certaines fonctionnalités.",
+        "NSMicrophoneUsageDescription": "Cette app nécessite l'accès au microphone pour certaines fonctionnalités.",
+        "NSPhotoLibraryUsageDescription": "Cette app nécessite l'accès à vos photos."
+      }
+    },
+    "android": {
+      "package": "com.airwear.rwear",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_WIFI_STATE",
+        "CHANGE_WIFI_MULTICAST_STATE"
+      ],
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Permet l'enregistrement audio pour les fonctionnalités de l'app."
+        }
+      ],
+      "expo-video"
+    ],
+    "scheme": "rwear",
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    },
+    "owner": "airwear"
+>>>>>>> 16febd78f1795de803c7f3218255c114e35ee02a
   }
 }
