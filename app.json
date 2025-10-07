@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "rwear-app",
+    "slug": "rwear-app",
+    "android": {
+      "package": "com.anonymous.rwearapp"
+    }
+  }
+}
