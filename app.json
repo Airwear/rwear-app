@@ -80,9 +80,7 @@
       }
     },
     "owner": "12345dom",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/768bf314-3231-4f48-ac91-e4afb1acc830"
     }
