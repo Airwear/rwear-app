@@ -1,22 +1,5 @@
 {
-<<<<<<< HEAD
   "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true,
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    }
-  },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
-}
-=======
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
@@ -33,8 +16,14 @@
     "isolatedModules": true,
     "baseUrl": "./",
     "paths": {
+      "@/*": ["./*"],
       "types/*": ["types/*"]
     }
-  }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }
->>>>>>> 16febd78f1795de803c7f3218255c114e35ee02a
