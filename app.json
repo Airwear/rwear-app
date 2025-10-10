@@ -30,7 +30,7 @@
     },
     "android": {
       "package": "com.airwear.rwear",
-      "googleServicesFile": "./google-services.json",
+      "googleServicesFile": "./android/app/google-services.json",
       "versionCode": 1,
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
@@ -43,7 +43,6 @@
         "ACCESS_WIFI_STATE",
         "CHANGE_WIFI_MULTICAST_STATE"
       ]
-      
     },
     "web": {
       "favicon": "./front/assets/images/favicon.png",
