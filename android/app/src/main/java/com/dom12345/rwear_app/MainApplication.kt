@@ -1,4 +1,4 @@
-package com.airwear.rwear
+package com.dom12345.rwear_app
 
 import android.app.Application
 import android.content.res.Configuration
