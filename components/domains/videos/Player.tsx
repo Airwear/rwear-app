@@ -9,7 +9,6 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { TimeUpdateEventPayload, useVideoPlayer, VideoView } from 'expo-video';
 import { useEventListener } from "expo";
 import { useFocusEffect } from 'expo-router';
-import { useCastVideo } from "@/hooks/useCastVideo";
 
 export default function Player(video: VideoRawType) {
 
@@ -20,9 +19,6 @@ export default function Player(video: VideoRawType) {
 
     const [status, setStatus] = useState<any>({});
     const [ready, isReady] = useState<boolean>(false);
-
-    // Google Cast integration
-    const { isConnected, castVideo: startCasting } = useCastVideo();
 
     const mPlayer = useVideoPlayer(video.url as string, player => {
         player.showNowPlayingNotification = false;
@@ -115,18 +111,6 @@ export default function Player(video: VideoRawType) {
         }
     }, [])
 
-    // Auto-cast when connected to a Cast device Simon 
-    useEffect(() => {
-        if (isConnected && video.url) {
-            startCasting(
-                video.url,
-                video.designation || 'Video',
-                video.description || '',
-                video.cover || ''
-            );
-        }
-    }, [isConnected, video.url, video.designation, video.description, video.cover, startCasting]);
-
     return (
         <View style={styles.container}>
             
@@ -149,12 +133,6 @@ export default function Player(video: VideoRawType) {
                 />
             )} 
             
-            {isConnected && (
-                <View style={styles.castingOverlay}>
-                    {/* You can add a casting indicator here */}
-                </View>
-            )}
-            
             {/** <VideoView 
                 style={styles.video} 
                 player={player} 
@@ -173,11 +151,5 @@ const styles = StyleSheet.create({
 
     video: {
        flex: 1 
-    },
-
-    castingOverlay: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
     },
 })
