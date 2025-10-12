@@ -42,13 +42,7 @@
           "supportsPictureInPicture": true
         }
       ],
-      "expo-web-browser",
-      [
-        "react-native-google-cast",
-        {
-          "receiverAppId": "CC1AD845"
-        }
-      ]
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
@@ -58,7 +52,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "f00dc19b-eaef-4a08-8bb0-25a60fd9a66a"
+        "projectId": "768bf314-3231-4f48-ac91-e4afb1acc830"
       }
     },
     "owner": "12345dom"
