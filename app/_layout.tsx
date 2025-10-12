@@ -3,10 +3,10 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, StrictMode} from 'react';
+import { useEffect, StrictMode } from 'react';
 import 'react-native-reanimated';
-import 'expo-dev-client';
-//import { FBMessageProvider } from '@/contexts/fbmContext';
+// import 'expo-dev-client';   // ❌ retiré pour la build de prod
+// import { FBMessageProvider } from '@/contexts/fbmContext';
 import { AppProvider } from '@/contexts/appContext';
 import { Text } from '@/components/Themed';
 
@@ -24,7 +24,6 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
@@ -36,14 +35,12 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-
     if (loaded) {
       SplashScreen.hideAsync();
     }
-
   }, [loaded]);
 
-  if (! loaded) {
+  if (!loaded) {
     return null;
   }
 
@@ -60,8 +57,12 @@ export default function RootLayout() {
 }
 
 function RootAppLayout() {
-  return <Stack>
-    <Stack.Screen name="(app)"  options={{  headerShown: false, title: "Accueil"  }} />
-  </Stack>
+  return (
+    <Stack>
+      <Stack.Screen
+        name="(app)"
+        options={{ headerShown: false, title: 'Accueil' }}
+      />
+    </Stack>
+  );
 }
-
