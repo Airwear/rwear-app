@@ -4,10 +4,10 @@
     "slug": "rwear-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./front/assets/images/icon.png",
+    "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./front/assets/images/splash.png",
+      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -22,13 +22,13 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./front/assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.rwear.app"
     },
     "web": {
-      "favicon": "./front/assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "react-native-google-cast",
@@ -36,11 +36,12 @@
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "1.9.22",
-            "gradlePluginVersion": "8.4.1"
+            "kotlinVersion": "1.9.22"
           }
         }
-      ]
+      ],
+      "expo-router",
+      "expo-video"
     ],
     "extra": {
       "eas": {
