@@ -31,7 +31,16 @@
       "favicon": "./front/assets/images/favicon.png"
     },
     "plugins": [
-      "react-native-google-cast"
+      "react-native-google-cast",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.22",
+            "gradlePluginVersion": "8.4.1"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
