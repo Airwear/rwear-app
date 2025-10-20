@@ -32,14 +32,6 @@
     },
     "plugins": [
       "react-native-google-cast",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "kotlinVersion": "1.9.22"
-          }
-        }
-      ],
       "expo-router",
       "expo-video"
     ],
