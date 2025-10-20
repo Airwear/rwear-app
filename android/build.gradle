@@ -1,37 +1,30 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+rootProject.name = "app"
 
-buildscript {
-  repositories {
-    google()
-    mavenCentral()
-  }
-  dependencies {
-    classpath('com.android.tools.build:gradle')
-    classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
-  }
-}
-
-def reactNativeAndroidDir = new File(
-  providers.exec {
-    workingDir(rootDir)
-    commandLine("node", "--print", "require.resolve('react-native/package.json')")
-  }.standardOutput.asText.get().trim(),
-  "../android"
-)
-
-allprojects {
-  repositories {
-    maven {
-      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-      url(reactNativeAndroidDir)
+def resolveExpoAutolinkingPath() {
+    // chemins possibles où le plugin peut se trouver
+    def candidates = [
+        new File(rootDir, "../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"),
+        new File(rootDir, "../node_modules/expo/node_modules/expo-modules-autolinking/android/expo-gradle-plugin")
+    ]
+    for (c in candidates) {
+        if (c.exists()) {
+            return c
+        }
     }
-
-    google()
-    mavenCentral()
-    maven { url 'https://www.jitpack.io' }
-  }
+    // fallback: return the first candidate (will produce the original error)
+    return candidates[0]
 }
 
-apply plugin: "expo-root-project"
-apply plugin: "com.facebook.react.rootproject"
+apply from: new File([ "node", "--print", "require.resolve('expo/package.json')" ].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle")
+useExpoModules()
+
+// Include react-native app module
+include ':app'
+
+// Include expo autolinking plugin if present
+def expoAutolinkingDir = resolveExpoAutolinkingPath()
+if (expoAutolinkingDir.exists()) {
+    includeBuild(expoAutolinkingDir)
+} else {
+    println("WARNING: expo-autolinking plugin not found at expected locations: " + expoAutolinkingDir)
+}
