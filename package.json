@@ -47,6 +47,7 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "^4.0.0",
     "react-native-simple-dialogs": "^2.1.0",
+    "react-native-video": "^6.17.0",
     "react-native-web": "^0.20.0",
     "react-native-webview": "13.13.5"
   },
