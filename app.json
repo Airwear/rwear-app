@@ -32,6 +32,11 @@
     },
     "plugins": [
       "react-native-google-cast"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "768bf314-3231-4f48-ac91-e4afb1acc830"
+      }
+    }
   }
 }
