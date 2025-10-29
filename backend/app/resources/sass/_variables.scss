@@ -1,0 +1,32 @@
+// Body
+$body-bg: #f8fafc;
+
+// Typography
+$font-family-sans-serif: 'Nunito', sans-serif;
+$font-size-base: 0.9rem;
+$line-height-base: 1.6;
+
+//Fontawesome
+$fa-font-path: "../webfonts";
+
+// scss-docs-start theme-color-variables
+
+
+$success:       #548235 !default;
+$primary:       #e51b23 !default;
+$warning:       #ffd966 !default;
+$dark:          #333f4f !default;
+
+$authBgGray:    #d2d6de !default;
+$authBorderColorTop:    #7c6755 !default;
+$topBarColor:    $dark !default;
+$logoBgColor: $dark !default;
+$bg-red: #fa6b44 !default;
+$bg-green: #00A65A !default;
+$bg-blue: rgba(0, 176, 240, 0.8) !default;
+$bg-blue-light: #3c8dbc !default;
+$bg-purple: #605ca8 !default;
+$btn-primary: #e51b23;
+$btn-border: #367fa9;
+// scss-docs-end theme-color-variables
+
