@@ -34,7 +34,17 @@
     "plugins": [
       "react-native-google-cast",
       "expo-router",
-      "expo-video"
+      "expo-video",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.8.22",
+            "gradlePluginVersion": "8.3.0"
+          }
+        }
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
