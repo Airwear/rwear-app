@@ -2,7 +2,7 @@
   "expo": {
     "name": "Rwear App",
     "slug": "rwear-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
@@ -21,11 +21,12 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 6,
+      "package": "com.rwear.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.rwear.app"
+      }
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

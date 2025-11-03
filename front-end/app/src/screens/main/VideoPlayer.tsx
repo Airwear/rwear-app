@@ -3,6 +3,7 @@ import { View, StyleSheet, BackHandler } from 'react-native';
 import Video from 'react-native-video';
 import GoogleCast, { CastButton, CastMiniController, CastState } from 'react-native-google-cast';
 import { useFocusEffect } from '@react-navigation/native';
+import * as ScreenOrientation from 'expo-screen-orientation';   // 🔹 Ajout
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation';
 
@@ -13,6 +14,7 @@ export default function VideoPlayer({ route, navigation }: Props) {
   const playerRef = useRef<Video>(null);
   const [castConnected, setCastConnected] = useState(false);
 
+  // 🔹 Gestion du bouton retour Android
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
@@ -24,6 +26,7 @@ export default function VideoPlayer({ route, navigation }: Props) {
     }, [navigation])
   );
 
+  // 🔹 Gestion du Cast
   useEffect(() => {
     GoogleCast.getCastState().then(state => {
       setCastConnected(state === CastState.CONNECTED);
@@ -51,6 +54,16 @@ export default function VideoPlayer({ route, navigation }: Props) {
     });
   };
 
+  // 🔹 Forcer paysage à l’arrivée sur l’écran
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+
+    return () => {
+      // 🔹 Revenir en portrait quand on quitte
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
       <Video
@@ -59,6 +72,11 @@ export default function VideoPlayer({ route, navigation }: Props) {
         style={styles.video}
         controls
         resizeMode="contain"
+        shouldPlay
+        onLoadStart={() => {
+          // 🔹 Dès que la vidéo démarre → forcer paysage
+          ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+        }}
         onPlaybackResume={startCasting}
       />
       <View style={styles.castButtonContainer}>

@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../navigation';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -10,6 +13,8 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const { theme } = useTheme();
+
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -22,6 +27,9 @@ export default function LoginScreen() {
 
     try {
       await login(email, password);
+
+      // 🔹 Redirection après succès
+      navigation.replace('Home');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erreur de connexion');
     } finally {
@@ -73,44 +81,27 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>Se connecter</Text>
         )}
       </TouchableOpacity>
+
+      {/* 🔹 Bouton vers l'inscription pour reperage */}
+      <TouchableOpacity
+        style={styles.linkButton}
+        onPress={() => navigation.navigate('Registration')}
+      >
+        <Text style={[styles.linkText, { color: theme.colors.primary }]}>
+          Créer un compte
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-  },
-  button: {
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  error: {
-    color: '#FF3B30',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
+  container: { flex: 1, padding: 20, justifyContent: 'center' },
+  title: { fontSize: 32, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },
+  input: { height: 50, borderWidth: 1, borderRadius: 8, paddingHorizontal: 15, marginBottom: 15 },
+  button: { height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  error: { color: '#FF3B30', marginBottom: 15, textAlign: 'center' },
+  linkButton: { marginTop: 20, alignItems: 'center' },
+  linkText: { fontSize: 14, fontWeight: '500' },
 });

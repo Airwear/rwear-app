@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../../../navigation';
+import { RootStackParamList } from '../../navigation'; // 🔹 corrigé
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
 export default function WelcomeScreen({ navigation }: Props) {
   const { theme } = useTheme();
@@ -23,14 +23,14 @@ export default function WelcomeScreen({ navigation }: Props) {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, styles.primaryButton, { backgroundColor: theme.colors.primary }]}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => navigation.navigate('Login')} 
         >
           <Text style={styles.primaryButtonText}>Se connecter</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton, { borderColor: theme.colors.primary }]}
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => navigation.navigate('Registration')} 
         >
           <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
             Créer un compte

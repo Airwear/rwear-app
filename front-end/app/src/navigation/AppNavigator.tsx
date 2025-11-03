@@ -8,6 +8,7 @@ import VideoPlayer from '../screens/main/VideoPlayer';
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
+import RegistrationScreen from '../screens/auth/RegistrationScreen'; // 🔹 ajouté
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -15,14 +16,15 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Home"
+        initialRouteName="Login" 
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Registration" component={RegistrationScreen} /> {/* 🔹 ajouté */}
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="VideoPlayer" component={VideoPlayer} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
