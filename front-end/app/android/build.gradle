@@ -6,8 +6,8 @@ buildscript {
         compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
         targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
 
-        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.8.22'
-        composeCompilerVersion = findProperty('android.composeCompilerVersion') ?: '1.4.8'
+        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.22'
+        composeCompilerVersion = findProperty('android.composeCompilerVersion') ?: '1.5.10'
 
         ndkVersion = "26.1.10909125"
     }
@@ -34,10 +34,10 @@ allprojects {
 
 configurations.all {
     resolutionStrategy {
-        force "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
-        force "org.jetbrains.kotlin:kotlin-stdlib-common:1.8.22"
-        force "org.jetbrains.kotlin:kotlin-reflect:1.8.22"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
+        force "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
+        force "org.jetbrains.kotlin:kotlin-stdlib-common:1.9.22"
+        force "org.jetbrains.kotlin:kotlin-reflect:1.9.22"
+        force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22"
+        force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22"
     }
 }
