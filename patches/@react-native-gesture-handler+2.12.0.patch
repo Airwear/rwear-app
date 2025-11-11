@@ -1,0 +1,38 @@
+diff --git a/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt b/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt
+index 0000000..0000000 100644
+--- a/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt
++++ b/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt
+@@
+-  @ReactMethod(isBlockingSynchronousMethod = true)
+-  fun install(): Boolean {
+-    return try {
+-      SoLoader.loadLibrary("gesturehandler")
+-      val jsContext = reactApplicationContext.javaScriptContextHolder
+-      decorateRuntime(jsContext.get())
+-      true
+-    } catch (exception: Exception) {
+-      Log.w("[RNGestureHandler]", "Could not install JSI bindings.")
+-      false
+-    }
+-  }
++  @ReactMethod(isBlockingSynchronousMethod = true)
++  fun install(): Boolean {
++    return try {
++      SoLoader.loadLibrary("gesturehandler")
++      val jsContext = reactApplicationContext.javaScriptContextHolder
++      // javaScriptContextHolder is nullable on some RN versions/configurations.
++      // Use a safe call and only call native decorateRuntime when we have a non-null pointer.
++      val jsiPtr = jsContext?.get()
++      if (jsiPtr != null) {
++        decorateRuntime(jsiPtr)
++        true
++      } else {
++        // If no JS context is available, skip JSI bindings installation.
++        Log.w("[RNGestureHandler]", "JS context not available, skipping JSI bindings installation.")
++        false
++      }
++    } catch (exception: Exception) {
++      Log.w("[RNGestureHandler]", "Could not install JSI bindings.")
++      false
++    }
++  }
