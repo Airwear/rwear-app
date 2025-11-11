@@ -1,0 +1,86 @@
+diff --git a/node_modules/@react-native-picker/picker/android/build.gradle b/node_modules/@react-native-picker/picker/android/build.gradle
+index 155b3a8..398039d 100644
+--- a/node_modules/@react-native-picker/picker/android/build.gradle
++++ b/node_modules/@react-native-picker/picker/android/build.gradle
+@@ -1,4 +1,3 @@
+-
+ buildscript {
+     ext.safeExtGet = {prop, fallback ->
+         rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+@@ -21,15 +20,12 @@ def getExtOrIntegerDefault(name) {
+   return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['ReactNativePicker_' + name]).toInteger()
+ }
+ 
+-
+ def resolveReactNativeDirectory() {
+     def reactNativeLocation = safeExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
+     if (reactNativeLocation != null) {
+         return file(reactNativeLocation)
+     }
+ 
+-    // monorepo workaround
+-    // react-native can be hoisted or in project's own node_modules
+     def reactNativeFromProjectNodeModules = file("${rootProject.projectDir}/../node_modules/react-native")
+     if (reactNativeFromProjectNodeModules.exists()) {
+         return reactNativeFromProjectNodeModules
+@@ -60,10 +56,6 @@ def getReactNativeMinorVersion() {
+ }
+ 
+ def isNewArchitectureEnabled() {
+-    // To opt-in for the New Architecture, you can either:
+-    // - Set `newArchEnabled` to true inside the `gradle.properties` file
+-    // - Invoke gradle with `-newArchEnabled=true`
+-    // - Set an environment variable `ORG_GRADLE_PROJECT_newArchEnabled=true`
+     return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
+ }
+ 
+@@ -75,29 +67,30 @@ if (isNewArchitectureEnabled()) {
+ 
+ android {
+     def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+-  if (agpVersion.tokenize('.')[0].toInteger() >= 7) {
+-    namespace "com.reactnativecommunity.picker"
+-  }
++    if (agpVersion.tokenize('.')[0].toInteger() >= 7) {
++        namespace "com.reactnativecommunity.picker"
++    }
+ 
+-  compileSdkVersion safeExtGet('compileSdkVersion', 31)
++    compileSdkVersion safeExtGet('compileSdkVersion', 31)
+ 
+     defaultConfig {
+         minSdkVersion safeExtGet('minSdkVersion', 21)
+         targetSdkVersion safeExtGet('targetSdkVersion', 31)
+-        vectorDrawables.useSupportLibrary=getExtOrDefault('vector_drawable_use_support_library')
++        vectorDrawables.useSupportLibrary = getExtOrDefault('vector_drawable_use_support_library')
+         buildConfigField("boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString())
+     }
+ 
++
++    buildFeatures {
++        buildConfig true
++    }
++
+     sourceSets.main {
+         java {
+             if (isNewArchitectureEnabled()) {
+-                srcDirs += [
+-                    "src/fabric/java",
+-                ]
++                srcDirs += ["src/fabric/java"]
+             } else {
+-                srcDirs += [
+-                    "src/paper/java",
+-                ]
++                srcDirs += ["src/paper/java"]
+             }
+         }
+     }
+@@ -105,7 +98,6 @@ android {
+ 
+ repositories {
+   maven {
+-      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+       url "$projectDir/../node_modules/react-native/android"
+   }
+   google()

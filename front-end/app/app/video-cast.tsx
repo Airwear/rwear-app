@@ -9,6 +9,9 @@ import { Ionicons } from '@expo/vector-icons';
 export default function VideoCastScreen() {
   const params = useLocalSearchParams();
 
+  // Work around mismatched/ambiguous typings from the google cast lib
+  const GC: any = GoogleCast as any;
+  const GoogleCastButton: any = CastButton as any;
   const [castState, setCastState] = useState(CastState.NOT_CONNECTED);
   const [sessionManager, setSessionManager] = useState<SessionManager | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,15 +20,15 @@ export default function VideoCastScreen() {
   useEffect(() => {
     const initCast = async () => {
       try {
-        await GoogleCast.setCastOptions({
-          receiverApplicationId: GoogleCast.RECEIVER_ID_CAST_VIDEOS,
+        await GC.setCastOptions({
+          receiverApplicationId: GC.RECEIVER_ID_CAST_VIDEOS,
         });
 
-        const castStateListener = GoogleCast.onCastStateChanged((state) => {
+        const castStateListener = GC.onCastStateChanged((state: any) => {
           setCastState(state);
         });
 
-        const manager = await GoogleCast.getSessionManager();
+        const manager = await GC.getSessionManager();
         setSessionManager(manager);
 
         const sessionStartedListener = manager.onSessionStarted(() => {
@@ -56,11 +59,11 @@ export default function VideoCastScreen() {
     try {
       setIsLoading(true);
       if (castState !== CastState.CONNECTED) {
-        await GoogleCast.showCastDialog();
+        await GC.showCastDialog();
       }
       await sessionManager.loadMedia({
         mediaInfo: {
-          contentId: params.videoUrl,
+          contentId: typeof params.videoUrl === 'string' ? params.videoUrl : (Array.isArray(params.videoUrl) ? params.videoUrl[0] : String(params.videoUrl)),
           contentType: 'video/mp4',
           metadata: {
             type: 'movie',
@@ -96,20 +99,21 @@ export default function VideoCastScreen() {
       {/* Lecteur vidéo avec bouton Cast en overlay */}
       <View style={{ flex: 1 }}>
         <Video
-          source={{ uri: params.videoUrl }}
+          source={{ uri: typeof params.videoUrl === 'string' ? params.videoUrl : (Array.isArray(params.videoUrl) ? params.videoUrl[0] : String(params.videoUrl)) }}
           style={{ flex: 1 }}
-          resizeMode="contain"
+          resizeMode={"contain" as any}
           useNativeControls
         />
-        <CastButton
+        <GoogleCastButton
           style={{
             position: 'absolute',
             top: 16,
             right: 16,
             width: 32,
             height: 32,
+            // tintColor is not a standard ViewStyle prop; cast to any to avoid type error
             tintColor: 'white',
-          }}
+          } as any}
         />
       </View>
 
@@ -128,12 +132,12 @@ export default function VideoCastScreen() {
           <View style={styles.buttonContainer}>
             {!isCasting ? (
               <TouchableOpacity style={styles.castButton} onPress={startCasting}>
-                <Ionicons name="cast" size={24} color="white" />
+                <Ionicons name={"cast" as any} size={24} color="white" />
                 <Text style={styles.buttonText}>Démarrer le Cast</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity style={[styles.castButton, styles.stopButton]} onPress={stopCasting}>
-                <Ionicons name="stop-circle" size={24} color="white" />
+                <Ionicons name={"stop-circle" as any} size={24} color="white" />
                 <Text style={styles.buttonText}>Arrêter le Cast</Text>
               </TouchableOpacity>
             )}

@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import CastButton from '../../components/CastButton';
+import { CastButton } from '../../../components/domains/videos/CastButton';
 
 export default function VideoCastScreen() {
   return (

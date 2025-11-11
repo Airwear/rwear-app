@@ -20,20 +20,24 @@ export default function VideoCast({ video }: VideoCastProps) {
   const [castState, setCastState] = useState<CastState>(CastState.NOT_CONNECTED);
   const [isCasting, setIsCasting] = useState(false);
   const client = useRemoteMediaClient();
-  const videoRef = useRef(null);
+  const videoRef = useRef<any>(null);
   const [status, setStatus] = useState({});
   const [ready, isReady] = useState(false);
 
+  // Workaround mixed typings from react-native-google-cast package
+  const GC: any = GoogleCast as any;
+  const GoogleCastButton: any = CastButton as any;
+
   useEffect(() => {
     // Initialize Google Cast
-    GoogleCast.EventEmitter.addListener(GoogleCast.CAST_STATE_CHANGED, (state) => {
+    GC.EventEmitter.addListener(GC.CAST_STATE_CHANGED, (state: any) => {
       console.log('Cast state changed:', state);
       setCastState(state.castState);
     });
 
     // Set up the receiver app ID (default receiver)
-    GoogleCast.setCastOptions({
-      receiverApplicationId: GoogleCast.RECEIVER_APP_ID,
+    GC.setCastOptions({
+      receiverApplicationId: GC.RECEIVER_APP_ID,
     });
 
     return () => {
@@ -55,8 +59,9 @@ export default function VideoCast({ video }: VideoCastProps) {
 
       // Get current position if video was playing
       let position = 0;
-      if (status.isLoaded && status.positionMillis) {
-        position = status.positionMillis / 1000; // Convert to seconds
+      const typedStatus = status as { isLoaded?: boolean; positionMillis?: number };
+      if (typedStatus.isLoaded && typedStatus.positionMillis) {
+        position = typedStatus.positionMillis / 1000; // Convert to seconds
       }
 
       // Load media to cast
@@ -97,9 +102,9 @@ export default function VideoCast({ video }: VideoCastProps) {
         
         // Resume local playback from the cast position
         if (videoRef.current && position > 0) {
-          await videoRef.current.setPositionAsync(position * 1000); // Convert to milliseconds
-          await videoRef.current.playAsync();
-        }
+            await videoRef.current.setPositionAsync(position * 1000); // Convert to milliseconds
+            await videoRef.current.playAsync();
+          }
         
         console.log('Stopped casting');
       } catch (error) {
@@ -108,11 +113,11 @@ export default function VideoCast({ video }: VideoCastProps) {
     }
   };
 
-  const _onReadyForDisplay = (event) => {
+  const _onReadyForDisplay = (event: any) => {
     isReady(Boolean(event?.status?.isLoaded));
   };
 
-  const _onPlaybackStatusUpdate = (playbackStatus) => {
+  const _onPlaybackStatusUpdate = (playbackStatus: any) => {
     setStatus(playbackStatus);
   };
 
@@ -128,7 +133,7 @@ export default function VideoCast({ video }: VideoCastProps) {
             uri: video.url,
           }}
           useNativeControls
-          resizeMode={ResizeMode.CONTAIN}
+          resizeMode={ResizeMode.CONTAIN as any}
           isLooping={false}
           onReadyForDisplay={_onReadyForDisplay}
           onPlaybackStatusUpdate={_onPlaybackStatusUpdate}
@@ -150,7 +155,7 @@ export default function VideoCast({ video }: VideoCastProps) {
       )}
       
       <View style={styles.controlsContainer}>
-        <CastButton style={styles.castButton} />
+  <GoogleCastButton style={styles.castButton as any} />
         
         {castState === CastState.CONNECTED && !isCasting && (
           <TouchableOpacity 

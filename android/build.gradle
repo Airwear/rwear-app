@@ -1,0 +1,90 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    ext {
+// @generated begin react-native-google-cast-version-import - expo prebuild (DO NOT MODIFY) sync-db817f4a724fb91198c6371e63f6b1188e44e98d
+        castFrameworkVersion = "21.4.0"
+// @generated end react-native-google-cast-version-import
+        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '35.0.0'
+        minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '24')
+        compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
+        targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
+    kotlinVersion = (project.hasProperty('android.kotlinVersion') ? project.property('android.kotlinVersion') : null) ?: '1.9.25'
+
+        ndkVersion = "26.1.10909125"
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath('com.android.tools.build:gradle')
+        classpath('com.facebook.react:react-native-gradle-plugin')
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+apply plugin: "com.facebook.react.rootproject"
+
+// Expose kotlinVersion to subprojects and force kotlin stdlib/group to the
+// project Kotlin version to avoid mixing incompatible Kotlin versions
+ext.kotlinVersion = kotlinVersion
+
+subprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin') {
+                // Use project kotlin version for all org.jetbrains.kotlin artifacts.
+                // Some modules may request kotlin artifacts without a version
+                // (e.g. "org.jetbrains.kotlin:kotlin-stdlib:"). Ensure we set a
+                // concrete version string so Gradle can resolve them.
+                def requestedVersion = details.requested.version
+                if (requestedVersion == null || requestedVersion.toString().trim() == '') {
+                    details.useVersion("${kotlinVersion}")
+                } else {
+                    // Respect requested version but prefer the project kotlin version
+                    // to avoid mixing incompatible Kotlin versions.
+                    details.useVersion("${kotlinVersion}")
+                }
+            }
+        }
+    }
+}
+
+allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = '17'
+        }
+    }
+    repositories {
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url(new File(['node', '--print', "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), '../android'))
+        }
+        maven {
+            // Android JSC is installed from npm
+            url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
+        }
+
+        google()
+        mavenCentral()
+        maven { url 'https://www.jitpack.io' }
+    }
+    // Also apply kotlin version alignment to allprojects configurations to
+    // cover included builds or projects that are evaluated earlier than
+    // subprojects. This ensures any org.jetbrains.kotlin requests without
+    // a version get a concrete version and avoids unresolved coordinates.
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin') {
+                def requestedVersion = details.requested.version
+                if (requestedVersion == null || requestedVersion.toString().trim() == '') {
+                    details.useVersion("${kotlinVersion}")
+                } else {
+                    details.useVersion("${kotlinVersion}")
+                }
+            }
+        }
+    }
+}

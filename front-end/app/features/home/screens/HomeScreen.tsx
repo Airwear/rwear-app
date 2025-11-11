@@ -10,7 +10,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { Play, Clock, Flame } from 'lucide-react-native';
-import CastButton from '../components/video/CastButton';
+import { CastButton } from '../../../components/domains/videos/CastButton';
 import { RootStackParamList } from 'types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;

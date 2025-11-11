@@ -1,13 +1,15 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
     ext {
-        castFrameworkVersion = "+"
+// @generated begin react-native-google-cast-version-import - expo prebuild (DO NOT MODIFY) sync-db817f4a724fb91198c6371e63f6b1188e44e98d
+        castFrameworkVersion = "21.4.0"
+// @generated end react-native-google-cast-version-import
         buildToolsVersion = findProperty('android.buildToolsVersion') ?: '35.0.0'
         minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '24')
         compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
         targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
-
-        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.22'
-        composeCompilerVersion = findProperty('android.composeCompilerVersion') ?: '1.5.10'
+    kotlinVersion = (project.hasProperty('android.kotlinVersion') ? project.property('android.kotlinVersion') : null) ?: '1.9.25'
 
         ndkVersion = "26.1.10909125"
     }
@@ -16,28 +18,76 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.6.0")
-        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath('com.android.tools.build:gradle:8.2.2')
+        classpath('com.facebook.react:react-native-gradle-plugin')
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        // @generated begin react-native-google-cast-classpath-entry - expo prebuild (DO NOT MODIFY) sync-4e4439e9d209c7ae74f28841d6800ea9fb4c1df7
+        classpath('com.google.gms:google-services:4.4.1')  // Google Services plugin
+        // @generated end react-native-google-cast-classpath-entry
     }
 }
 
 apply plugin: "com.facebook.react.rootproject"
 
+// Expose kotlinVersion to subprojects and force kotlin stdlib/group to the
+// project Kotlin version to avoid mixing incompatible Kotlin versions
+ext.kotlinVersion = kotlinVersion
+
+subprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin') {
+                // Use project kotlin version for all org.jetbrains.kotlin artifacts.
+                // Some modules may request kotlin artifacts without a version
+                // (e.g. "org.jetbrains.kotlin:kotlin-stdlib:"). Ensure we set a
+                // concrete version string so Gradle can resolve them.
+                def requestedVersion = details.requested.version
+                if (requestedVersion == null || requestedVersion.toString().trim() == '') {
+                    details.useVersion("${kotlinVersion}")
+                } else {
+                    // Respect requested version but prefer the project kotlin version
+                    // to avoid mixing incompatible Kotlin versions.
+                    details.useVersion("${kotlinVersion}")
+                }
+            }
+        }
+    }
+}
+
 allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = '17'
+        }
+    }
     repositories {
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url(new File(['node', '--print', "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), '../android'))
+        }
+        maven {
+            // Android JSC is installed from npm
+            url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
+        }
+
         google()
         mavenCentral()
         maven { url 'https://www.jitpack.io' }
     }
-}
-
-configurations.all {
-    resolutionStrategy {
-        force "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
-        force "org.jetbrains.kotlin:kotlin-stdlib-common:1.9.22"
-        force "org.jetbrains.kotlin:kotlin-reflect:1.9.22"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22"
+    // Also apply kotlin version alignment to allprojects configurations to
+    // cover included builds or projects that are evaluated earlier than
+    // subprojects. This ensures any org.jetbrains.kotlin requests without
+    // a version get a concrete version and avoids unresolved coordinates.
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin') {
+                def requestedVersion = details.requested.version
+                if (requestedVersion == null || requestedVersion.toString().trim() == '') {
+                    details.useVersion("${kotlinVersion}")
+                } else {
+                    details.useVersion("${kotlinVersion}")
+                }
+            }
+        }
     }
 }

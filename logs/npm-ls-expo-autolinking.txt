@@ -1,0 +1,4 @@
+base-app@1.0.0 C:\Users\Maison\Airwear App\rwear-app\front
+`-- expo@53.0.23
+  `-- expo-modules-autolinking@1.11.3 overridden
+

@@ -182,4 +182,7 @@ export const icons = {
     play: require('../assets/images/videos/play.png'),
     logo: require('../assets/images/logo.png'),
     podometre: require('../assets/images/podometre.png'),
+    // Added fallback icons used across components
+    userProfile: require('../assets/images/profile.png'),
+    bgMan: require('../assets/images/adaptive-icon.png'),
 }
