@@ -174,31 +174,40 @@ export default function VideoCast({ video }: VideoCastProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000',
   },
   video: {
     flex: 1,
+    width: '100%',
+    height: '100%',
   },
   castingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#000',
   },
   castingText: {
     fontSize: 18,
     marginBottom: 20,
+    color: '#fff',
   },
   controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 10,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
   },
   castButton: {
-    width: 24,
-    height: 24,
-    tintColor: '#000',
+    width: 32,
+    height: 32,
+    tintColor: '#fff',
   },
   castNowButton: {
     flexDirection: 'row',

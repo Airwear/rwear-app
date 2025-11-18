@@ -91,11 +91,20 @@ export default function VideoPlayer({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'black' },
-  video: { flex: 1 },
+  video: { 
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
   castButtonContainer: {
     position: 'absolute',
-    top: 20,
-    right: 20
+    top: 10,
+    right: 10,
+    zIndex: 9999,
+    elevation: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 20,
+    padding: 8,
   },
   castButton: {
     width: 28,
@@ -108,6 +117,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: '#222'
+    backgroundColor: '#222',
+    zIndex: 100,
   }
 });

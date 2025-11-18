@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Dimensions } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import GoogleCast, { CastButton, CastState, SessionManager } from 'react-native-google-cast';
 import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 export default function VideoCastScreen() {
   const params = useLocalSearchParams();
@@ -16,6 +18,16 @@ export default function VideoCastScreen() {
   const [sessionManager, setSessionManager] = useState<SessionManager | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCasting, setIsCasting] = useState(false);
+
+  useEffect(() => {
+    // Forcer le mode paysage
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+
+    return () => {
+      // Revenir en portrait à la sortie
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    };
+  }, []);
 
   useEffect(() => {
     const initCast = async () => {
@@ -92,38 +104,38 @@ export default function VideoCastScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Cast Video' }} />
-      <StatusBar style="auto" />
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+      <Stack.Screen options={{ 
+        title: 'Cast Video',
+        headerShown: false,
+      }} />
+      <StatusBar hidden />
 
-      {/* Lecteur vidéo avec bouton Cast en overlay */}
-      <View style={{ flex: 1 }}>
+      {/* Lecteur vidéo en plein écran */}
+      <View style={styles.videoContainer}>
         <Video
           source={{ uri: typeof params.videoUrl === 'string' ? params.videoUrl : (Array.isArray(params.videoUrl) ? params.videoUrl[0] : String(params.videoUrl)) }}
-          style={{ flex: 1 }}
+          style={styles.video}
           resizeMode={"contain" as any}
           useNativeControls
         />
-        <GoogleCastButton
-          style={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            width: 32,
-            height: 32,
-            // tintColor is not a standard ViewStyle prop; cast to any to avoid type error
-            tintColor: 'white',
-          } as any}
-        />
+        
+        {/* Bouton Cast fixe en haut à droite avec z-index élevé */}
+        <View style={styles.castButtonWrapper}>
+          <GoogleCastButton
+            style={styles.castButtonStyle as any}
+          />
+        </View>
       </View>
 
-      {/* Zone de contrôle Cast */}
+      {/* Zone de contrôle Cast (masquée en plein écran, apparaît seulement si nécessaire) */}
+      {(castState !== CastState.CONNECTED || !isCasting) && (
       <View style={styles.castControlsContainer}>
         <Text style={styles.castStatus}>
           {castState === CastState.NOT_CONNECTED && 'Non connecté'}
           {castState === CastState.CONNECTING && 'Connexion en cours...'}
-          {castState === CastState.CONNECTED && !isCasting && 'Connecté'}
-          {castState === CastState.CONNECTED && isCasting && 'Casting en cours'}
+          {(castState as any) === (CastState.CONNECTED as any) && !isCasting && 'Connecté'}
+          {(castState as any) === (CastState.CONNECTED as any) && isCasting && 'Casting en cours'}
         </Text>
 
         {isLoading ? (
@@ -144,26 +156,65 @@ export default function VideoCastScreen() {
           </View>
         )}
       </View>
-    </View>
+      )}
+    </SafeAreaView>
   );
 }
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  castControlsContainer: { padding: 20, alignItems: 'center' },
-  castStatus: { fontSize: 16, marginBottom: 20, textAlign: 'center' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#000',
+  },
+  videoContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  video: {
+    width: '100%',
+    height: '100%',
+  },
+  castButtonWrapper: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 9999,
+    elevation: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 8,
+  },
+  castButtonStyle: {
+    width: 32,
+    height: 32,
+    tintColor: 'white',
+  },
+  castControlsContainer: { 
+    padding: 20, 
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  castStatus: { fontSize: 14, marginBottom: 10, textAlign: 'center', color: '#fff' },
   buttonContainer: { width: '100%', alignItems: 'center' },
   castButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#4285F4',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
-    marginBottom: 16,
+    marginBottom: 10,
     width: '80%',
   },
   stopButton: { backgroundColor: '#DB4437' },
-  buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
+  buttonText: { color: 'white', fontSize: 14, fontWeight: 'bold', marginLeft: 8 },
 });
