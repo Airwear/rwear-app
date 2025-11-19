@@ -18,7 +18,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle:8.2.2')
+        classpath('com.android.tools.build:gradle:8.5.0')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         // @generated begin react-native-google-cast-classpath-entry - expo prebuild (DO NOT MODIFY) sync-4e4439e9d209c7ae74f28841d6800ea9fb4c1df7
@@ -57,6 +57,7 @@ subprojects {
 allprojects {
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
+            // Garder jvmTarget 17 pour compatibilité Kotlin/React Native; Java toolchain passera à 21.
             jvmTarget = '17'
         }
     }

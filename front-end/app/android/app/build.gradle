@@ -8,9 +8,22 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "kotlin-android"
 
+// Tâche pour appliquer les patches avant la compilation
+task applyPatches(type: Exec) {
+    workingDir file('../../')
+    commandLine 'cmd', '/c', 'npx patch-package'
+}
+
+// S'assurer que les patches sont appliqués avant toute compilation
+tasks.whenTaskAdded { task ->
+    if (task.name.contains('compile') && task.name.contains('Java')) {
+        task.dependsOn applyPatches
+    }
+}
+
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -20,6 +33,7 @@ kotlin {
 
 android {
     kotlinOptions {
+        // Conserver 17 pour Kotlin tant que passage à Kotlin 2.x non effectué
         jvmTarget = "17"
     }
 }
@@ -112,8 +126,8 @@ android {
 
     namespace 'com.rwear.app'
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 
     kotlinOptions {
