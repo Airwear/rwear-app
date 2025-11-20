@@ -28,7 +28,8 @@ java {
 }
 
 kotlin {
-    jvmToolchain(17)
+    // On conserve jvmTarget 17 (voir kotlinOptions plus bas) mais toolchain JDK 21
+    jvmToolchain(21)
 }
 
 android {
@@ -131,6 +132,7 @@ android {
     }
 
     kotlinOptions {
+        // Garder bytecode 17 pour compatibilité libs React Native (peut être relevé après audit)
         jvmTarget = "17"
     }
     defaultConfig {

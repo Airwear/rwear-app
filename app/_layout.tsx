@@ -16,8 +16,8 @@ import { Text } from '@/components/Themed';
 // </FBMessageProvider>
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(app)',
+  // Route d'entrée: écran de bienvenue avant authentification
+  initialRouteName: 'welcome',
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -59,6 +59,10 @@ export default function RootLayout() {
 function RootAppLayout() {
   return (
     <Stack>
+      <Stack.Screen
+        name="welcome"
+        options={{ headerShown: false, title: 'Bienvenue' }}
+      />
       <Stack.Screen
         name="(app)"
         options={{ headerShown: false, title: 'Accueil' }}

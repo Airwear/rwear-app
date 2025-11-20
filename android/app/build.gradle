@@ -24,6 +24,7 @@ android {
     }
 }
 
+// Revenir à la racine du repo pour inclure tous les écrans (registration, cast)
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
@@ -36,11 +37,9 @@ react {
     hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
     codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
 
-    // Use Expo CLI to bundle the app, this ensures the Metro config
-    // works correctly with Expo projects.
+    // Racine JS = racine monorepo (inclut dossier app avec registration & cast)
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
-    
     jsRootDir = file("$projectRoot")
 
     /* Folders */
@@ -123,7 +122,7 @@ android {
         applicationId 'com.rwear.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
+        versionCode 7
         versionName "1.0.1"
     }
     signingConfigs {
@@ -133,15 +132,19 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('C:\\Users\\C lient\\keystores\\rwear-app-new.jks')
+            storePassword 'RwearApp@2025Secure'
+            keyAlias 'rwear_key'
+            keyPassword 'RwearApp@2025Secure'
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"

@@ -35,7 +35,8 @@ export default function IndexScreen() {
   }
 
   const newAccount = () => {
-    router.push('/register')
+    // Nouveau flux: aller vers RegistrationScreen étendu
+    router.push('/RegistrationScreen')
   }
 
   useEffect(() => {
