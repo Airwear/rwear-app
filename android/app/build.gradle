@@ -7,6 +7,8 @@ def safeExtGet(prop, fallback) {
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "kotlin-android"
+// Appliquer le plugin Google Services pour activer les intégrations Firebase
+apply plugin: 'com.google.gms.google-services'
 
 java {
     toolchain {
