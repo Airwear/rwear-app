@@ -55,34 +55,57 @@ export function useCasting(videoUrl?: string, metadata: CastingMetadata = {}): U
   }, []);
 
   const startCasting = useCallback(async () => {
-    if (!sessionManager) return;
-    if (!videoUrl || typeof videoUrl !== 'string' || !/^https?:\/\//.test(videoUrl)) {
-      setError('URL vidéo invalide');
+    if (!videoUrl || typeof videoUrl !== 'string') {
+      setError('URL vidéo manquante');
+      return;
+    }
+    if (!/^https?:\/\//.test(videoUrl)) {
+      setError('URL doit être publique (http/https)');
       return;
     }
     try {
       setIsLoading(true);
+      setError(undefined);
+      console.log('🎬 Démarrage Cast avec URL:', videoUrl);
+      
       if (castState !== CastState.CONNECTED) {
-        await GoogleCast.showCastDialog();
+        console.log('📡 Ouverture dialogue Cast...');
+        const shown = await GoogleCast.showCastDialog();
+        if (!shown) {
+          setIsLoading(false);
+          setError('Dialogue Cast annulé');
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-      await sessionManager.loadMedia({
+
+      const currentSessionManager = await GoogleCast.getSessionManager();
+      console.log('📱 SessionManager obtenu, chargement média...');
+      
+      await currentSessionManager.loadMedia({
         mediaInfo: {
           contentId: videoUrl,
           contentType: 'video/mp4',
+          streamType: 'buffered',
           metadata: {
             type: 'movie',
             title: metadata.title || 'Lecture vidéo',
             images: metadata.thumbnail ? [{ url: metadata.thumbnail }] : [],
           },
         },
+        startTime: 0,
+        autoplay: true,
       });
+      
       setIsLoading(false);
       setIsCasting(true);
-    } catch (e) {
+      console.log('✅ Cast démarré avec succès');
+    } catch (e: any) {
+      console.error('❌ Erreur Cast:', e);
       setIsLoading(false);
-      setError('Erreur démarrage Cast');
+      setError('Erreur: ' + (e?.message || 'Impossible de caster'));
     }
-  }, [sessionManager, videoUrl, metadata.title, metadata.thumbnail, castState]);
+  }, [videoUrl, metadata.title, metadata.thumbnail, castState]);
 
   const stopCasting = useCallback(async () => {
     if (!sessionManager) return;

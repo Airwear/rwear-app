@@ -77,8 +77,6 @@ export default function IndexScreen() {
               error={undefined}
               secureTextEntry
             />
-
-            {/** <ForgetPasswordLink /> */}
             
             <View style={{height: 10}} />
 
@@ -111,7 +109,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 16,
-    //justifyContent: 'center'
   },
 
   imageContainer: {

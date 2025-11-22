@@ -16,6 +16,7 @@ export default function VideoPlayer({ route, navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
   const [casting, setCasting] = useState(false);
+  const [paused, setPaused] = useState(false);
 
   // 🔹 Gestion du bouton retour Android
   useFocusEffect(
@@ -89,9 +90,14 @@ export default function VideoPlayer({ route, navigation }: Props) {
         style={styles.video}
         controls
         resizeMode="contain"
+        paused={paused}
         onLoadStart={() => setLoading(true)}
-        onLoad={() => setLoading(false)}
+        onLoad={() => { setLoading(false); setPaused(false); }}
         onError={(e) => { setError('Erreur lecture'); setLoading(false); }}
+        onSeek={() => setPaused(false)}
+        playInBackground={false}
+        playWhenInactive={false}
+        progressUpdateInterval={250}
       />
       {loading && (
         <View style={styles.loader}><ActivityIndicator color="#fff" size="large" /></View>

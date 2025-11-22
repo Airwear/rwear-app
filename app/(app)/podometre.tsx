@@ -16,29 +16,29 @@ export default function TabPodometreScreen() {
   const stepDescription = "L’activité physique permet en effet de réduire une surcharge pondérale, de contrôler la glycémie (sucre dans le sang), la tension artérielle et le cholesterol. Il est ainsi recommandé de pratiquer au moins 30 minutes d’exercice modérée 3 fois par semaine.";
 
   const subscribe = async () => {
-    
-    const isAvailable = await Pedometer.isAvailableAsync();
+    try {
+      const isAvailable = await Pedometer.isAvailableAsync();
+      setIsPedometerAvailable(String(isAvailable));
 
-    setIsPedometerAvailable(String(isAvailable));
+      if (isAvailable) {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 1);
 
-    if (isAvailable) {
+        const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
 
-      const end = new Date();
-      const start = new Date();
-      start.setDate(end.getDate() - 1);
+        if (pastStepCountResult) {
+          setPastStepCount(pastStepCountResult.steps);
+          setCurrentStepCount(pastStepCountResult.steps);
+        }
 
-      console.log(start, start.setDate(end.getDate() - 1))
-
-      const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
-
-      if (pastStepCountResult) {
-        setPastStepCount(pastStepCountResult.steps);
-        setCurrentStepCount(pastStepCountResult.steps);
+        return Pedometer.watchStepCount(result => {
+          setCurrentStepCount(prevState => prevState + result.steps);
+        });
       }
-
-      return Pedometer.watchStepCount(result => {
-        setCurrentStepCount(prevState => prevState + result.steps);
-      });
+    } catch (error) {
+      console.error('Erreur podomètre:', error);
+      setIsPedometerAvailable('unavailable');
     }
   };
 
@@ -67,10 +67,21 @@ export default function TabPodometreScreen() {
         />
 
         <View style={{marginBottom: 16}} />
-          <Title text={stepLast24h.toLocaleUpperCase()} weight='bold' align='center' />
-          <Title text={String(currentStepCount)} color={Colors.danger} weight='bold' align='center' size={75} />
-          <Title text={stepDescription} size={15} align='center' color={Colors.muted} />
-        </View>
+        
+        {isPedometerAvailable === 'checking' && (
+          <Title text="Vérification du podomètre..." align='center' color={Colors.muted} />
+        )}
+        {isPedometerAvailable === 'unavailable' && (
+          <Title text="Podomètre non disponible sur cet appareil" align='center' color={Colors.danger} />
+        )}
+        {isPedometerAvailable === 'true' && (
+          <>
+            <Title text={stepLast24h.toLocaleUpperCase()} weight='bold' align='center' />
+            <Title text={String(currentStepCount)} color={Colors.danger} weight='bold' align='center' size={75} />
+            <Title text={stepDescription} size={15} align='center' color={Colors.muted} />
+          </>
+        )}
+      </View>
     </FlexContainer>
   );
 }

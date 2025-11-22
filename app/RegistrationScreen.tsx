@@ -1,14 +1,28 @@
 import React, { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
-import { useTheme } from '../src/context/ThemeContext';
+import { Text, StyleSheet, ScrollView, View, TouchableOpacity } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import Colors from '@/constants/Colors';
+import { FlexContainer, ImageViewer, Form, AppPolicy } from '@/components';
+import { ButtonSimple } from '@/components/buttons';
+import { icons } from '@/utils';
 
-// NOTE: Flux demandé: Welcome -> Registration -> Login
-// Après inscription on renvoie l'utilisateur vers l'écran de login (sign-in)
-// Ce fichier est la version route Expo Router de l'ancien RegistrationScreen.
+const goalOptions = [
+  'remise en forme',
+  'perte de poids',
+  'raffermir le corps',
+  'ventre plat',
+  'prise de masse musculaire',
+  'relaxation (yoga, Stretch)'
+];
+const pathologyOptions = [
+  'Non',
+  'Diabète',
+  'Cancer',
+  'Maladies cardiovasculaire',
+  'Autres'
+];
 
 export default function RegistrationScreen() {
-  const { theme } = useTheme();
   const router = useRouter();
 
   const [name, setName] = useState('');
@@ -20,8 +34,9 @@ export default function RegistrationScreen() {
   const [city, setCity] = useState('');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
-  const [goal, setGoal] = useState('');
-  const [pathology, setPathology] = useState('');
+  const [goal, setGoal] = useState<string>('');
+  const [pathology, setPathology] = useState<string>('');
+  const [pathologyOther, setPathologyOther] = useState<string>('');
   const [password, setPassword] = useState('');
 
   const [loading, setLoading] = useState(false);
@@ -37,10 +52,10 @@ export default function RegistrationScreen() {
     setError('');
 
     try {
+      const pathologyValue = pathology === 'Autres' ? `Autres: ${pathologyOther}` : pathology;
       console.log('Données envoyées au backend :', {
-        name, email, username, birthDate, phone, country, city, weight, height, goal, pathology, password
+        name, email, username, birthDate, phone, country, city, weight, height, goal, pathology: pathologyValue, password
       });
-      // Redirection vers la page de login selon flux souhaité
       router.replace('/sign-in');
     } catch (err: any) {
       setError('Erreur lors de l’inscription');
@@ -50,45 +65,144 @@ export default function RegistrationScreen() {
   };
 
   return (
-    <>
+    <FlexContainer color={Colors.white} push>
       <Stack.Screen options={{ title: 'Inscription' }} />
-      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Inscription</Text>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      <ImageViewer 
+        placeholderImageSource={icons.logo} 
+        width={125}
+        height={125}
+      />
 
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Nom" placeholderTextColor={theme.colors.textSecondary} value={name} onChangeText={setName} />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Email" placeholderTextColor={theme.colors.textSecondary} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Pseudo" placeholderTextColor={theme.colors.textSecondary} value={username} onChangeText={setUsername} />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Date de naissance" placeholderTextColor={theme.colors.textSecondary} value={birthDate} onChangeText={setBirthDate} />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Téléphone" placeholderTextColor={theme.colors.textSecondary} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Pays" placeholderTextColor={theme.colors.textSecondary} value={country} onChangeText={setCountry} />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Ville" placeholderTextColor={theme.colors.textSecondary} value={city} onChangeText={setCity} />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Poids (kg)" placeholderTextColor={theme.colors.textSecondary} value={weight} onChangeText={setWeight} keyboardType="numeric" />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Taille (cm)" placeholderTextColor={theme.colors.textSecondary} value={height} onChangeText={setHeight} keyboardType="numeric" />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Objectif" placeholderTextColor={theme.colors.textSecondary} value={goal} onChangeText={setGoal} />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Pathologie" placeholderTextColor={theme.colors.textSecondary} value={pathology} onChangeText={setPathology} />
-        <TextInput style={[styles.input, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]} placeholder="Mot de passe" placeholderTextColor={theme.colors.textSecondary} value={password} onChangeText={setPassword} secureTextEntry />
+      <View style={styles.container}>
+        <ScrollView>
+          {error.length > 0 && <Text style={styles.error}>{error}</Text>}
 
-        <TouchableOpacity style={[styles.button, { backgroundColor: theme.colors.primary }]} onPress={handleRegister} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>S'inscrire</Text>}
-        </TouchableOpacity>
+          <Text style={styles.sectionTitle}>Identification</Text>
+          <Form.Input label="Nom" placeholder="Nom" value={name} onChangeText={setName} error={undefined} />
+          <Form.Input label="Adresse mail" placeholder="Adresse mail" value={email} onChangeText={setEmail} error={undefined} keyboardType="email-address" />
+          <Form.Input label="Pseudo" placeholder="Pseudo" value={username} onChangeText={setUsername} error={undefined} />
+          <Form.Input label="Date de naissance" placeholder="JJ/MM/AAAA" value={birthDate} onChangeText={setBirthDate} error={undefined} />
+          <Form.Input label="Tel (WhatsApp)" placeholder="Téléphone" value={phone} onChangeText={setPhone} error={undefined} keyboardType="phone-pad" />
 
-        <TouchableOpacity style={styles.linkButton} onPress={() => router.push('/sign-in')}>
-          <Text style={[styles.linkText, { color: theme.colors.primary }]}>Déjà un compte ? Se connecter</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </>
+          <Text style={styles.sectionTitle}>Localisation</Text>
+          <Form.Input label="Pays" placeholder="Pays" value={country} onChangeText={setCountry} error={undefined} />
+          <Form.Input label="Ville" placeholder="Ville" value={city} onChangeText={setCity} error={undefined} />
+
+          <Text style={styles.sectionTitle}>Données corporelles</Text>
+          <Form.Input label="Poids (kg)" placeholder="Poids" value={weight} onChangeText={setWeight} error={undefined} keyboardType="numeric" />
+          <Form.Input label="Taille (cm)" placeholder="Taille" value={height} onChangeText={setHeight} error={undefined} keyboardType="numeric" />
+
+          <Text style={styles.sectionTitle}>Objectif</Text>
+          <View style={styles.optionsWrap}>
+            {goalOptions.map(opt => (
+              <TouchableOpacity
+                key={opt}
+                style={[styles.optionBtn, goal === opt && styles.optionBtnSelected]}
+                onPress={() => setGoal(opt)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: goal === opt }}
+              >
+                <Text style={[styles.optionText, goal === opt && styles.optionTextSelected]}>{opt}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Avez-vous une pathologie ?</Text>
+          <View style={styles.optionsWrap}>
+            {pathologyOptions.map(opt => (
+              <TouchableOpacity
+                key={opt}
+                style={[styles.optionBtn, pathology === opt && styles.optionBtnSelected]}
+                onPress={() => setPathology(opt)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: pathology === opt }}
+              >
+                <Text style={[styles.optionText, pathology === opt && styles.optionTextSelected]}>{opt}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {pathology === 'Autres' && (
+            <Form.Input
+              label="Précisez"
+              placeholder="Précisez la pathologie"
+              value={pathologyOther}
+              onChangeText={setPathologyOther}
+              error={undefined}
+            />
+          )}
+
+          <Text style={styles.sectionTitle}>Sécurité</Text>
+          <Form.InputPassword label="Mot de passe" placeholder="Mot de passe" value={password} onChangeText={setPassword} error={undefined} secureTextEntry />
+
+          <View style={{ height: 10 }} />
+
+          <ButtonSimple 
+            text="S'inscrire"
+            color={Colors.primary}
+            onPress={handleRegister}
+            showIndicator={loading}
+          />
+
+          <View style={{ height: 10 }} />
+
+          <ButtonSimple 
+            text="Déjà un compte ? Se connecter"
+            color={Colors.danger}
+            onPress={() => router.push('/sign-in')}
+            showIndicator={false}
+          />
+
+          <AppPolicy />
+        </ScrollView>
+      </View>
+    </FlexContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, flexGrow: 1, justifyContent: 'center' },
-  title: { fontSize: 32, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },
-  input: { height: 50, borderWidth: 1, borderRadius: 8, paddingHorizontal: 15, marginBottom: 15 },
-  button: { height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 10, marginBottom: 20 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  error: { color: '#FF3B30', marginBottom: 15, textAlign: 'center' },
-  linkButton: { marginTop: 10, alignItems: 'center' },
-  linkText: { fontSize: 14, fontWeight: '500' },
+  container: {
+    flex: 1,
+    paddingTop: 16,
+  },
+  error: { 
+    color: Colors.danger, 
+    marginBottom: 15, 
+    textAlign: 'center',
+    fontSize: 15 
+  },
+  sectionTitle: { 
+    fontSize: 17, 
+    fontWeight: '600', 
+    marginTop: 16, 
+    marginBottom: 8,
+    color: Colors.muted 
+  },
+  optionsWrap: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    marginBottom: 10 
+  },
+  optionBtn: { 
+    paddingVertical: 8, 
+    paddingHorizontal: 12, 
+    borderRadius: 20, 
+    borderWidth: 1, 
+    borderColor: Colors.muted, 
+    marginRight: 8, 
+    marginBottom: 8,
+    backgroundColor: Colors.white 
+  },
+  optionBtnSelected: { 
+    backgroundColor: Colors.primary, 
+    borderColor: Colors.primary 
+  },
+  optionText: { 
+    color: Colors.muted, 
+    fontSize: 13 
+  },
+  optionTextSelected: { 
+    color: '#fff', 
+    fontWeight: '600' 
+  }
 });
