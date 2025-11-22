@@ -1,19 +1,22 @@
-# Configuration SHA-1 pour Firebase et Google Play
+# Configuration SHA-1 / Clés de signature – Firebase & Google Play
 
 ## 📋 Résumé des clés de signature
 
 ### 1. Clé Google Play App Signing (Production)
-**Fournie par Google Play Console**
+**Fournie par Google Play Console (App Signing Key)**
 ```
-SHA-1: B8:DD:D9:38:B0:16:66:92:40:82:00:30:EE:9D:12:1C:4B:CB:10:5E
+SHA-1 (exemple) : B8:DD:D9:38:B0:16:66:92:40:82:00:30:EE:9D:12:1C:4B:CB:10:5E
 ```
-Cette clé est utilisée par Google Play pour signer automatiquement votre APK/AAB en production.
+Google Play re-signe votre bundle avec cette clé avant distribution. Vous ne signez JAMAIS localement avec celle-ci.
 
-### 2. Clé de signature locale (Upload Key)
-**Keystore**: `C:\Users\C lient\keystores\rwear-app-new.jks`
+### 2. Clé Upload (celle attendue par Play lors de l’envoi AAB)
+**Keystore actuel utilisé (après changement)**: `C:\Users\C lient\keystores\rwear-app-new.jks`
 - **Alias**: `rwear_key`
-- **Store Password**: `RwearApp@2025Secure`
-- **Key Password**: `RwearApp@2025Secure`
+- **SHA-1 actuel (observé)**: `1C:08:81:16:E6:7C:A6:DB:44:1E:A7:54:A5:76:E7:E4:B6:8E:43:8F`
+
+**Empreinte SHA-1 attendue par Play (message d’erreur)**: `25:25:7B:2B:DA:48:1B:34:EA:1E:F5:0B:C4:B9:D9:04:F9:A3:04:F0`
+
+Cela signifie que votre compte Play Console est encore configuré pour une ancienne Upload Key (ou qu’un reset n’a pas encore pris effet). Tant que l’empreinte attendue ≠ empreinte du keystore utilisé, l’AAB est rejeté.
 
 Pour obtenir le SHA-1 de cette clé, exécutez :
 ```powershell
@@ -43,17 +46,14 @@ Cherchez la ligne qui commence par `SHA1:` dans la sortie.
      - Package name : `com.rwear.app`
      - App ID : `1:1019689655061:android:20300ed0cefcc6d012a71c`
 
-4. **Ajouter les deux SHA-1**
+4. **Ajouter les SHA-1 nécessaires**
    
    a) **Clé Google Play (OBLIGATOIRE)** :
    ```
    B8:DD:D9:38:B0:16:66:92:40:82:00:30:EE:9D:12:1C:4B:CB:10:5E
    ```
    
-   b) **Clé Upload locale** (obtenez-la avec keytool ci-dessus)
-   ```
-   [Votre SHA-1 local à ajouter]
-   ```
+   b) **Clé Upload (si utilisée pour des services exigeant SHA)** : ajoutez l’empreinte de la clé d’upload que vous UTILISEZ réellement. Si vous venez de changer de keystore, ajoutez la nouvelle empreinte ET conservez l’ancienne si elle figure encore dans des builds distribués.
 
 5. **Sauvegarder**
    - Cliquer sur **Add fingerprint** pour chaque clé
@@ -85,7 +85,7 @@ cd android
 
 ## 📦 Configuration Google Play Console
 
-### Obtenir la clé Google Play App Signing
+### Obtenir les certificats (App Signing & Upload Key)
 
 Si vous avez besoin de récupérer à nouveau cette clé :
 
@@ -102,14 +102,13 @@ Si vous avez besoin de récupérer à nouveau cette clé :
 ### Pourquoi deux clés ?
 
 1. **Clé Upload (locale)** :
-   - Utilisée pour signer votre APK/AAB avant upload sur Google Play
-   - Reste sur votre machine
-   - Nécessaire pour les tests en développement
+   - Sert uniquement à envoyer le bundle sur Play.
+   - Doit correspondre à l’empreinte SHA-1 dans la section "Upload key certificate" de Play Console.
+   - Si vous perdez le keystore: demander un RESET d’Upload Key et générer une NOUVELLE clé (Google ne génère pas l’upload key pour vous, vous fournissez son certificat).
 
 2. **Clé App Signing (Google Play)** :
-   - Google re-signe votre app avec cette clé avant distribution
-   - Les utilisateurs téléchargent l'app signée avec CETTE clé
-   - **C'est la clé critique pour Firebase/Cast/Google Sign-In**
+   - Clé gérée par Google. Les utilisateurs reçoivent l’APK/AAB signé avec elle.
+   - Firebase peut avoir besoin de SON empreinte si vous utilisez des flux sensibles (Auth, Dynamic Links). Ajoutez-la dans Firebase.
 
 ### Services nécessitant les SHA-1
 
@@ -143,6 +142,27 @@ cd android
    - Le bouton Cast doit fonctionner et se connecter au Chromecast
 
 ---
+
+## 🔁 Migration / Reset Upload Key
+
+### Cas: Play demande une ancienne empreinte (ex: `25:25:7B:...`) mais vous signez avec une nouvelle (`1C:08:81:...`)
+1. Vérifier dans Play Console > App Integrity la section **Upload key certificate**. Si l’empreinte affichée est l’ancienne, le reset n’a pas été appliqué.
+2. Si vous avez l’ancien keystore, réutilisez-le pour signer le bundle.
+3. Si perdu: demander un **Upload Key reset** (Contact Support) puis:
+   ```powershell
+   # Générer nouvelle upload key
+   keytool -genkeypair -alias upload -keyalg RSA -keysize 2048 -validity 9125 -keystore rwear-upload-reset.jks -storepass NouveauPass -dname "CN=Airwear, OU=Engineering, O=Airwear, L=Paris, ST=Ile-de-France, C=FR"
+   # Exporter certificat
+   keytool -export -rfc -alias upload -keystore rwear-upload-reset.jks -storepass NouveauPass -file upload-key.pem
+   ```
+4. Envoyer `upload-key.pem` au support Play quand ils le demandent.
+5. Attendre confirmation (quelques heures) puis signer vos AAB avec `rwear-upload-reset.jks`.
+6. Ajouter la NOUVELLE empreinte dans Firebase si nécessaire.
+
+### Vérifier empreintes locales
+```powershell
+keytool -list -v -keystore "C:\Users\C lient\keystores\rwear-app-new.jks" -alias rwear_key -storepass RwearApp@2025Secure | Select-String "SHA1:" 
+```
 
 ## 📝 Commandes utiles
 
