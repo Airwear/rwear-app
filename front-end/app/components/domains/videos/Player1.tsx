@@ -6,6 +6,7 @@ import { useFocusEffect } from 'expo-router';
 import { VideoRawType } from '@/utils/type-def';
 import Loader from '@/components/Loader';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { CastButton } from 'react-native-google-cast';
 
 export default function Player1(video: VideoRawType) {
 
@@ -107,6 +108,10 @@ export default function Player1(video: VideoRawType) {
         //@ts-ignore
         ref={videoViewRef} 
        />
+      <CastButton
+        style={styles.castButton}
+        tintColor="white"
+      />
       <View style={styles.controlsContainer}>
         <Button
           title={isPlaying ? 'Pause' : 'Play'}
@@ -136,6 +141,16 @@ const styles = StyleSheet.create({
   video: {
     width: 350,
     height: 275,
+  },
+
+  castButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    width: 48,
+    height: 48,
+    tintColor: 'white',
+    zIndex: 9999,
   },
 
   controlsContainer: {

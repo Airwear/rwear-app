@@ -9,6 +9,7 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { TimeUpdateEventPayload, useVideoPlayer, VideoView } from 'expo-video';
 import { useEventListener } from "expo";
 import { useFocusEffect } from 'expo-router';
+import { CastButton } from 'react-native-google-cast';
 
 export default function Player(video: VideoRawType) {
 
@@ -116,30 +117,28 @@ export default function Player(video: VideoRawType) {
             
             {! ready && <Loader visible />}
             {video.url && (
-                <Video
-                    style={styles.video}
-                    ref={player}
-                    source={{
-                        uri: video.url
-                    }}
-                    useNativeControls
-                    resizeMode={ResizeMode.CONTAIN}
-                    isLooping={false}
-                    onLoad={_onLoad}
-                    onLoadStart={_onLoadStart}
-                    onReadyForDisplay={_onReadyForDisplay}
-                    onPlaybackStatusUpdate={_onPlaybackStatusUpdate}
-                    onFullscreenUpdate={onFullscreenUpdate}
-                />
+                <>
+                    <Video
+                        style={styles.video}
+                        ref={player}
+                        source={{
+                            uri: video.url
+                        }}
+                        useNativeControls
+                        resizeMode={ResizeMode.CONTAIN}
+                        isLooping={false}
+                        onLoad={_onLoad}
+                        onLoadStart={_onLoadStart}
+                        onReadyForDisplay={_onReadyForDisplay}
+                        onPlaybackStatusUpdate={_onPlaybackStatusUpdate}
+                        onFullscreenUpdate={onFullscreenUpdate}
+                    />
+                    <CastButton
+                        style={styles.castButton}
+                        tintColor="white"
+                    />
+                </>
             )} 
-            
-            {/** <VideoView 
-                style={styles.video} 
-                player={player} 
-                allowsFullscreen 
-                allowsPictureInPicture 
-                
-            />*/}
         </View>
     )
 }
@@ -151,5 +150,15 @@ const styles = StyleSheet.create({
 
     video: {
        flex: 1 
+    },
+
+    castButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        width: 48,
+        height: 48,
+        tintColor: 'white',
+        zIndex: 9999,
     },
 })
