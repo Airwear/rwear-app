@@ -36,13 +36,21 @@ export default function Player1(video: VideoRawType) {
   });
 
   async function applyLandscape() {
-    console.log('applyLandscape', status)
-    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    try {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      console.log('Orientation paysage appliquée');
+    } catch (err) {
+      console.warn('Erreur orientation paysage:', err);
+    }
   }
 
   async function applyPortrait() {
-    console.log('applyPortrait', status)
-    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    try {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+      console.log('Orientation portrait appliquée');
+    } catch (err) {
+      console.warn('Erreur orientation portrait:', err);
+    }
   }
 
   const launchFullscreen = async () => {
@@ -59,32 +67,30 @@ export default function Player1(video: VideoRawType) {
   };
 
   useEffect(() => {
-    applyLandscape();
-    launchFullscreen();
-  }, [status, videoViewRef])
+    if (status === READY_TO_PLAY) {
+      applyLandscape().catch(err => console.warn('Erreur landscape:', err));
+      launchFullscreen();
+    }
+  }, [status])
 
   useFocusEffect(
     useCallback(() => {
-      // L'écran est monté ou regagné (focus)
-      console.log('useFocusEffect: je suis le player 1 useCallback')
+      console.log('useFocusEffect: écran vidéo monté')
       return () => {
-        // L'écran est quitté ou perd le focus
+        console.log('useFocusEffect: nettoyage écran vidéo')
+        
         if (player) {
-
-            console.log('useFocusEffect: je sors du player 1', video.url, isPlaying)
-            
-            if(status === READY_TO_PLAY) {
-
-              console.log('release player on time', player.currentTime)
-
-              applyPortrait();
-
-              player.release();
-            }
-            
+          try {
+            player.pause();
+            console.log('Player mis en pause');
+          } catch (err) {
+            console.warn('Erreur pause player:', err);
+          }
         }
+        
+        applyPortrait().catch(err => console.warn('Erreur orientation:', err));
       };
-    }, [video, status])
+    }, [player])
   );
 
   if(status !== READY_TO_PLAY) {
