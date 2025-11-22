@@ -119,7 +119,7 @@ android {
         jvmTarget = "17"
     }
     defaultConfig {
-        applicationId 'com.airwear.rwear'
+        applicationId 'com.rwear.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 7
