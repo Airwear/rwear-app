@@ -1,18 +1,19 @@
-/**
- * Metro configuration for React Native
- * Uses Expo's default Metro configuration when present.
- */
-try {
-  const { getDefaultConfig } = require('expo/metro-config');
-  module.exports = getDefaultConfig(__dirname);
-} catch (e) {
-  // Fallback to a minimal default when 'expo/metro-config' is not available.
-  module.exports = {
-    transformer: {
-      babelTransformerPath: require.resolve('react-native-svg-transformer'),
-    },
-    resolver: {
-      sourceExts: ['js', 'json', 'ts', 'tsx', 'jsx'],
-    },
-  };
-}
+const { getDefaultConfig } = require('expo/metro-config');
+const path = require('path');
+
+const config = getDefaultConfig(__dirname);
+
+// Resolve @/ alias for Metro
+config.resolver.extraNodeModules = new Proxy(
+  {},
+  {
+    get: (target, name) => {
+      if (name === '@') {
+        return path.resolve(__dirname);
+      }
+      return path.join(__dirname, `node_modules/${name}`);
+    }
+  }
+);
+
+module.exports = config;

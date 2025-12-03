@@ -23,11 +23,24 @@ export const useCastVideo = () => {
     }
 
     try {
+      // Détection du type de contenu
+      const u = (videoUrl || '').toLowerCase();
+      const isHls = u.endsWith('.m3u8') || u.includes('m3u8');
+      const isDash = u.endsWith('.mpd') || u.includes('manifest.mpd') || u.includes('/dash');
+      const isMp4 = u.endsWith('.mp4') || u.includes('.mp4');
+      const contentType = isHls
+        ? 'application/x-mpegURL'
+        : isDash
+          ? 'application/dash+xml'
+          : isMp4
+            ? 'video/mp4'
+            : 'video/mp4';
+
       await client.loadMedia({
         autoplay: true,
         mediaInfo: {
           contentUrl: videoUrl,
-          contentType: 'video/mp4',
+          contentType,
           metadata: {
             type: 'generic',
             title,

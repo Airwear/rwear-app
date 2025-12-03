@@ -64,6 +64,14 @@ function RootAppLayout() {
         options={{ headerShown: false, title: 'Bienvenue' }}
       />
       <Stack.Screen
+        name="sign-in"
+        options={{ headerShown: true, title: 'Connexion' }}
+      />
+      <Stack.Screen
+        name="register"
+        options={{ headerShown: true, title: 'Inscription' }}
+      />
+      <Stack.Screen
         name="(app)"
         options={{ headerShown: false, title: 'Accueil' }}
       />

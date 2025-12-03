@@ -7,6 +7,7 @@ import { _get, } from '@/services/api';
 import { useAuth } from '@/contexts/authContext';
 import { useApp } from '@/contexts/appContext';
 import { VideoTypeList } from '@/components/domains/videos';
+import { CastButton } from 'react-native-google-cast';
 
 
 export default function IndexScreen({navigation}: any) {
@@ -40,7 +41,13 @@ export default function IndexScreen({navigation}: any) {
   return (
     <FlexContainer push>
 
-      <UserHeader userName={authData?.username?.toLocaleUpperCase()} />
+      <View style={styles.headerContainer}>
+        <UserHeader userName={authData?.username?.toLocaleUpperCase()} />
+        <CastButton
+          style={styles.castButton}
+          tintColor="#000000"
+        />
+      </View>
 
       <VideoTypeList />
       
@@ -56,7 +63,17 @@ export default function IndexScreen({navigation}: any) {
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
   scrollView: {
     flex: 1,
+  },
+  castButton: {
+    marginTop: 8,
+    width: 48,
+    height: 48,
+    tintColor: '#000000',
   },
 });

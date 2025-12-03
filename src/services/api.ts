@@ -77,7 +77,7 @@ class ApiService {
   }
 
   async getTraining(id: string) {
-    const response = await this.api.get(/api/trainings/);
+    const response = await this.api.get(`/api/trainings/${id}`);
     return response.data;
   }
 
@@ -93,7 +93,7 @@ class ApiService {
   }
 
   async getVideo(id: string) {
-    const response = await this.api.get(/api/videos/);
+    const response = await this.api.get(`/api/videos/${id}`);
     return response.data;
   }
 
@@ -104,7 +104,7 @@ class ApiService {
   }
 
   async getCoach(id: string) {
-    const response = await this.api.get(/api/coaches/);
+    const response = await this.api.get(`/api/coaches/${id}`);
     return response.data;
   }
 

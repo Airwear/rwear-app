@@ -5,6 +5,7 @@ import Colors from '@/constants/Colors';
 import { FlexContainer, ImageViewer, Form, AppPolicy } from '@/components';
 import { ButtonSimple } from '@/components/buttons';
 import { icons } from '@/utils';
+import { useAuth } from '@/hooks';
 
 const goalOptions = [
   'remise en forme',
@@ -24,6 +25,7 @@ const pathologyOptions = [
 
 export default function RegistrationScreen() {
   const router = useRouter();
+  const { register, registering, error: authError } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -39,8 +41,7 @@ export default function RegistrationScreen() {
   const [pathologyOther, setPathologyOther] = useState<string>('');
   const [password, setPassword] = useState('');
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
 
   const handleRegister = async () => {
     if (!email || !password || !name) {
@@ -76,11 +77,13 @@ export default function RegistrationScreen() {
 
       <View style={styles.container}>
         <ScrollView>
-          {error.length > 0 && <Text style={styles.error}>{error}</Text>}
+          {(authError.length > 0 || localError.length > 0) && (
+            <Text style={styles.error}>{authError || localError}</Text>
+          )}
 
           <Text style={styles.sectionTitle}>Identification</Text>
           <Form.Input label="Nom" placeholder="Nom" value={name} onChangeText={setName} error={undefined} />
-          <Form.Input label="Adresse mail" placeholder="Adresse mail" value={email} onChangeText={setEmail} error={undefined} keyboardType="email-address" />
+          <Form.Input label="Adresse mail" placeholder="Adresse mail" value={email} onChangeText={setEmail} error={undefined} keyboardType="default" />
           <Form.Input label="Pseudo" placeholder="Pseudo" value={username} onChangeText={setUsername} error={undefined} />
           <Form.Input label="Date de naissance" placeholder="JJ/MM/AAAA" value={birthDate} onChangeText={setBirthDate} error={undefined} />
           <Form.Input label="Tel (WhatsApp)" placeholder="Téléphone" value={phone} onChangeText={setPhone} error={undefined} keyboardType="phone-pad" />
@@ -141,7 +144,7 @@ export default function RegistrationScreen() {
             text="S'inscrire"
             color={Colors.primary}
             onPress={handleRegister}
-            showIndicator={loading}
+            showIndicator={registering}
           />
 
           <View style={{ height: 10 }} />

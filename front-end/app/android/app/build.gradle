@@ -139,8 +139,8 @@ android {
         applicationId 'com.rwear.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.0.1"
+        versionCode 7
+        versionName "1.0.4"
     }
     signingConfigs {
         debug {
@@ -207,17 +207,18 @@ dependencies {
     api("com.facebook.react:react-android")
 
     // Ensure common AndroidX libraries are available to native modules and exposed transitively
-    api "androidx.annotation:annotation:1.6.0"
-    api "androidx.core:core-ktx:1.10.1"
-    api "androidx.fragment:fragment:1.6.1"
-    api "androidx.appcompat:appcompat:1.6.1"
+    api "androidx.annotation:annotation:1.8.0"
+    api "androidx.core:core-ktx:1.13.1"
+    api "androidx.activity:activity-ktx:1.9.0"
+    api "androidx.fragment:fragment:1.8.0"
+    api "androidx.appcompat:appcompat:1.7.0"
     
     // Ajout des dépendances AndroidX nécessaires
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     implementation "androidx.recyclerview:recyclerview:1.3.2"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.7.0"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.7.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.8.0"
     implementation "androidx.lifecycle:lifecycle-common-java8:2.7.0"
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";

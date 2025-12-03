@@ -82,10 +82,23 @@ export function useCasting(videoUrl?: string, metadata: CastingMetadata = {}): U
       const currentSessionManager = await GoogleCast.getSessionManager();
       console.log('📱 SessionManager obtenu, chargement média...');
       
+      // Détection du type de contenu (HLS/DASH/MP4)
+      const u = (videoUrl || '').toLowerCase();
+      const isHls = u.endsWith('.m3u8') || u.includes('m3u8');
+      const isDash = u.endsWith('.mpd') || u.includes('manifest.mpd') || u.includes('/dash');
+      const isMp4 = u.endsWith('.mp4') || u.includes('.mp4');
+      const contentType = isHls
+        ? 'application/x-mpegURL'
+        : isDash
+          ? 'application/dash+xml'
+          : isMp4
+            ? 'video/mp4'
+            : 'video/mp4';
+
       await currentSessionManager.loadMedia({
         mediaInfo: {
           contentId: videoUrl,
-          contentType: 'video/mp4',
+          contentType,
           streamType: 'buffered',
           metadata: {
             type: 'movie',

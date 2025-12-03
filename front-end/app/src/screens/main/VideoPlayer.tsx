@@ -56,12 +56,25 @@ export default function VideoPlayer({ route, navigation }: Props) {
     }
     try {
       setCasting(true);
+      // Déterminer automatiquement le type de contenu (HLS vs MP4)
+      const inferTypeFromUrl = (url: string) => {
+        const u = (url || '').toLowerCase();
+        if (/\.m3u8(\?|$)/i.test(u) || u.includes('m3u8')) return 'application/x-mpegURL';
+        if (/\.mpd(\?|$)/i.test(u) || u.includes('manifest.mpd') || u.includes('/dash')) return 'application/dash+xml';
+        if (/\.mp4(\?|$)/i.test(u) || u.includes('.mp4')) return 'video/mp4';
+        return 'video/mp4';
+      };
+      const contentType = inferTypeFromUrl(videoUrl);
+      // Pause du lecteur local pour handoff type YouTube
+      try { await playerRef.current?.pause?.(); } catch {}
       GoogleCast.castMedia({
         mediaUrl: videoUrl,
         title: 'Lecture en Cast',
         subtitle: 'Depuis Rwear',
-        contentType: 'video/mp4',
-        streamType: 'BUFFERED'
+        contentType,
+        streamType: 'BUFFERED',
+        autoplay: true,
+        playPosition: 0
       });
     } catch (e) {
       setError('Erreur Cast');

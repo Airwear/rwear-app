@@ -4,6 +4,7 @@ import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -18,12 +19,18 @@ class MainActivity : ReactActivity() {
     // coloring the background, status bar, and navigation bar.
     // This is required for expo-splash-screen.
     // setTheme(R.style.AppTheme);
+    // Activer edge-to-edge pour conformité SDK 35 avec rétrocompatibilité
+    enableEdgeToEdge()
     // @generated begin expo-splashscreen - expo prebuild (DO NOT MODIFY) sync-f3ff59a738c56c9a6119210cb55f0b613eb8b6af
     SplashScreenManager.registerOnActivity(this)
     // @generated end expo-splashscreen
     super.onCreate(null)
 // @generated begin react-native-google-cast-onCreate - expo prebuild (DO NOT MODIFY) sync-489050f2bf9933a98bbd9d93137016ae14c22faa
-    RNGCCastContext.getSharedInstance(this)
+    try {
+      RNGCCastContext.getSharedInstance(this)
+    } catch (e: Throwable) {
+      // Diagnostic: ne pas crasher si Cast init échoue
+    }
 // @generated end react-native-google-cast-onCreate
   }
 

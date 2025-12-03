@@ -1,0 +1,10 @@
+diff --git a/node_modules/expo-location/android/build.gradle b/node_modules/expo-location/android/build.gradle
+index 0000000..0000000 100644
+--- a/node_modules/expo-location/android/build.gradle
++++ b/node_modules/expo-location/android/build.gradle
+@@
+ dependencies {
+-  api 'com.google.android.gms:play-services-location:21.0.1'
+-  implementation project(":${project.name}\$io.nlopez.smartlocation-jetified-aar")
++  api 'com.google.android.gms:play-services-location:21.0.1'
+ }

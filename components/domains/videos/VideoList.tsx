@@ -9,7 +9,7 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
     const renderItem = ({ item, index }: any) => (
         <Link
             href={{
-                pathname: '/videos/video/[slug]',
+                pathname: '/videos/play/[slug]',
                 params: {
                     slug: item.slug,
                 }

@@ -1,7 +1,7 @@
 import React, {createContext, useState, useEffect, useContext} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContextType, AuthDataType } from '@/utils/type-def';
-import { _post, _put, apiRoutes } from '@/services/api';
+import { _post, _put, apiRoutes, setAuthToken } from '@/services/api';
 import { Loader } from '@/components';
 
 //Create the Auth Context with the data type specified
@@ -49,6 +49,8 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
         const _authData: any = JSON.parse(authDataSerialized as any);
 
         setAuthData(_authData);
+        // Injecte le token sauvegardé s'il existe
+        setAuthToken(_authData?.token || _authData?.access_token || _authData?.jwt || _authData?.bearer || _authData?.user?.token);
         isLogged(true);
 
         //console.log('AuthContext@loadStorageData_', _authData)
@@ -63,35 +65,67 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
   }
 
   const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    setError('');
+    setMessage('');
 
-    setLoading(true)
-    
-    return _post(apiRoutes.login, {email, password}, controller)
-      .then(response => {
+    const attempt = async (path: string) => {
+      if (__DEV__) console.log('[AUTH][LOGIN][ATTEMPT]', path);
+      return _post(path, { email, password }, controller);
+    };
 
-        const {data, error, message} = response
-        isLogged(false)
+    const endpoints = [apiRoutes.login, '/login', '/auth/login'];
+    let finalResponse: any = null;
+    let lastError: any = null;
 
-        if(error) {
-          setError(message);
+    for (const ep of endpoints) {
+      try {
+        finalResponse = await attempt(ep);
+        if (finalResponse) break;
+      } catch (e: any) {
+        lastError = e;
+        // si 404 on continue sur endpoint suivant, sinon on arrête
+        const status = e?.response?.status;
+        if (__DEV__) console.warn('[AUTH][LOGIN][FAIL]', ep, status, e?.friendlyMessage || e?.message);
+        if (status && status !== 404) break;
+      }
+    }
 
-        } else {
+    isLogged(false);
 
-          console.log('_data', data)
+    if (!finalResponse) {
+      const status = lastError?.response?.status;
+      const rawData = lastError?.response?.data;
+      const diagnostic = `Échec connexion${status ? ' (HTTP '+status+')' : ''}`;
+      const serverMsg = rawData?.message || rawData?.error || lastError?.friendlyMessage || lastError?.message;
+      setError(serverMsg ? `${diagnostic}: ${serverMsg}` : diagnostic);
+      setLoading(false);
+      return;
+    }
 
-          setAuthData(data);
-  
-          AsyncStorage.setItem(AuthStorageKey, JSON.stringify(data))
-  
-          isLogged(true)
-        }
+    if (__DEV__) console.log('[AUTH][LOGIN][RAW]', JSON.stringify(finalResponse, null, 2));
 
-      })
-      .catch(error => {
-        console.log('error', error.message)
-        isLogged(false)
-      })
-      .finally(() => setLoading(false))
+    const { data, error, message } = finalResponse;
+
+    if (error) {
+      setError(message || 'Identifiants invalides');
+      setLoading(false);
+      return;
+    }
+
+    const userData = data || finalResponse;
+    const token = userData?.token || userData?.access_token || userData?.jwt || userData?.bearer || userData?.user?.token;
+
+    if (token) {
+      setAuthToken(token);
+    } else if (__DEV__) {
+      console.warn('[AUTH][LOGIN] Token manquant – utilisateur tout de même stocké');
+    }
+
+    setAuthData(userData);
+    AsyncStorage.setItem(AuthStorageKey, JSON.stringify(userData));
+    isLogged(true);
+    setLoading(false);
   };
 
   const update = async (data: AuthDataType) => {
@@ -125,59 +159,47 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
   };
 
   const signOut = async () => {
-
-    setLoading(true)
-
-  
+    setLoading(true);
     setTimeout(async () => {
-
-      await AsyncStorage.setItem(AuthStorageKey, '')
-
-      //Remove data from context, so the App can be notified
-      //and send the user to the AuthStack
+      await AsyncStorage.setItem(AuthStorageKey, '');
+      setAuthToken(undefined);
       setAuthData(undefined);
-
-      isLogged(false)
-
-      setLoading(false)
-
-    }, 2000)
-
+      isLogged(false);
+      setLoading(false);
+    }, 500);
   };
 
   const setUrl = async (url: string) => {
     setBaseUrl(url)
   }
 
-  const register = async (email: string, login: string, password: string, fbm_token: string) => {
+  const register = async (email: string, login: string, password: string, fbm_token: string = '') => {
+    setRegistering(true);
+    setError('');
+    setMessage('');
 
-    setRegistering(true)
-    setError('')
-
-    return _post(apiRoutes.register, {email, username: login, password, fbm_token, group_id: 1}, controller)
+    return _post(apiRoutes.register, { email, username: login, password, fbm_token, group_id: 1 }, controller)
       .then(response => {
-
-        const {user, error, message} = response
-        
+        const { error, message } = response;
         if (error) {
-          setError(message)
+          setError(message || 'Erreur inscription');
         } else {
           const data = response.data;
-          if(data) {
-            AsyncStorage.setItem(AuthStorageKey, JSON.stringify(data))
-            setAuthData(data);
-            isLogged(true)
-            
-            loadStorageData()
+          if (data) {
+            // On NE connecte PAS automatiquement: on stocke juste email pour préremplir
+            AsyncStorage.setItem('@lastRegisteredEmail', email);
+            setMessage('Compte créé. Veuillez vous connecter.');
+            // Nettoyage éventuel du contexte d auth si quelque chose a été mis
+            setAuthData(undefined);
+            isLogged(false);
           }
         }
-
-        console.log('register', response)
       })
       .catch(error => {
-        console.log('error', error)
+        const friendly = (error as any).friendlyMessage || error.message || 'Erreur réseau';
+        setError(friendly);
       })
-      .finally(() => setRegistering(false))
+      .finally(() => setRegistering(false));
   };
 
   if(loading) {

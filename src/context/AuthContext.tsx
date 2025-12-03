@@ -21,7 +21,28 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.airwear.com';
+// Base URL configurable via EXPO_PUBLIC_API_URL; fallback vers prod connue
+const RAW_API = process.env.EXPO_PUBLIC_API_URL || 'https://rwear-sport.octet-group.org/api';
+// Normaliser: enlever slash final
+const API_BASE = RAW_API.replace(/\/+$/,'');
+
+// Essais d'endpoints (avec et sans préfixe /api)
+const LOGIN_ENDPOINTS = [
+  '/users/login',
+  '/login',
+  '/auth/login',
+  '/api/users/login',
+  '/api/login',
+  '/api/auth/login',
+];
+const REGISTER_ENDPOINTS = [
+  '/users/register',
+  '/register',
+  '/auth/register',
+  '/api/users/register',
+  '/api/register',
+  '/api/auth/register',
+];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -48,44 +69,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await axios.post(`${API_URL}/api/login`, {
-        email,
-        password,
-      });
+    let lastError: any = null;
+    for (const ep of LOGIN_ENDPOINTS) {
+      try {
+        const response = await axios.post(`${API_BASE}${ep}`, { email, password });
+        const data = response.data || {};
+        const token = data.token || data.access_token || data.jwt || data.bearer || data?.user?.token;
+        const userData = data.user || data;
 
-      const { token, user: userData } = response.data;
+        if (!token) {
+          console.warn('[AuthContext][login] Token manquant dans la réponse');
+        }
 
-      await AsyncStorage.setItem('auth_token', token);
-      await AsyncStorage.setItem('user_data', JSON.stringify(userData));
-      
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(userData);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+        await AsyncStorage.setItem('auth_token', token || '');
+        await AsyncStorage.setItem('user_data', JSON.stringify(userData));
+        if (token) axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setUser(userData);
+        return; // succès
+      } catch (e: any) {
+        lastError = e;
+        const status = e?.response?.status;
+        // Continuer si 404, stopper sinon
+        if (status && status !== 404) break;
+      }
     }
+    console.error('Login error:', lastError?.response?.status, lastError?.message);
+    throw lastError || new Error('Login failed');
   };
 
   const register = async (name: string, email: string, password: string) => {
-    try {
-      const response = await axios.post(`${API_URL}/api/register`, {
-        name,
-        email,
-        password,
-      });
+    let lastError: any = null;
+    for (const ep of REGISTER_ENDPOINTS) {
+      try {
+        const response = await axios.post(`${API_BASE}${ep}`, { name, email, password });
+        const data = response.data || {};
+        const token = data.token || data.access_token || data.jwt || data.bearer || data?.user?.token;
+        const userData = data.user || data;
 
-      const { token, user: userData } = response.data;
-
-      await AsyncStorage.setItem('auth_token', token);
-      await AsyncStorage.setItem('user_data', JSON.stringify(userData));
-      
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(userData);
-    } catch (error) {
-      console.error('Register error:', error);
-      throw error;
+        // Option: ne pas auto-login; ici on suit ancien comportement: auto-login
+        await AsyncStorage.setItem('auth_token', token || '');
+        await AsyncStorage.setItem('user_data', JSON.stringify(userData));
+        if (token) axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setUser(userData);
+        return;
+      } catch (e: any) {
+        lastError = e;
+        const status = e?.response?.status;
+        if (status && status !== 404) break;
+      }
     }
+    console.error('Register error:', lastError?.response?.status, lastError?.message);
+    throw lastError || new Error('Register failed');
   };
 
   const logout = async () => {

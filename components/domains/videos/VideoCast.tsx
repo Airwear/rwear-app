@@ -59,11 +59,24 @@ export default function VideoCast({ video }: VideoCastProps) {
         position = status.positionMillis / 1000; // Convert to seconds
       }
 
+      // Détection du type de contenu
+      const u = (video.url || '').toLowerCase();
+      const isHls = u.endsWith('.m3u8') || u.includes('m3u8');
+      const isDash = u.endsWith('.mpd') || u.includes('manifest.mpd') || u.includes('/dash');
+      const isMp4 = u.endsWith('.mp4') || u.includes('.mp4');
+      const contentType = isHls
+        ? 'application/x-mpegURL'
+        : isDash
+          ? 'application/dash+xml'
+          : isMp4
+            ? 'video/mp4'
+            : 'video/mp4';
+
       // Load media to cast
       await client.loadMedia({
         mediaInfo: {
           contentUrl: video.url,
-          contentType: 'video/mp4', // Adjust based on your video type
+          contentType,
           metadata: {
             title: video.title || 'Video',
             subtitle: video.description || '',

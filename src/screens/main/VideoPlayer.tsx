@@ -56,6 +56,18 @@ export default function VideoPlayer({ route, navigation }: Props) {
     }
     try {
       setCasting(true);
+      // Détection du type de contenu
+      const u = (videoUrl || '').toLowerCase();
+      const isHls = u.endsWith('.m3u8') || u.includes('m3u8');
+      const isDash = u.endsWith('.mpd') || u.includes('manifest.mpd') || u.includes('/dash');
+      const isMp4 = u.endsWith('.mp4') || u.includes('.mp4');
+      const contentType = isHls
+        ? 'application/x-mpegURL'
+        : isDash
+          ? 'application/dash+xml'
+          : isMp4
+            ? 'video/mp4'
+            : 'video/mp4';
       // Mettre en pause lecture locale pour éviter double flux
       playerRef.current?.seek(0);
       // Pas de méthode pause sur ref native TypeScript -> rely sur controls (l'utilisateur stoppe) ou utiliser prop paused
@@ -63,7 +75,7 @@ export default function VideoPlayer({ route, navigation }: Props) {
         mediaUrl: videoUrl,
         title: 'Lecture en Cast',
         subtitle: 'Depuis Rwear',
-        contentType: 'video/mp4',
+        contentType,
         streamType: 'BUFFERED'
       });
     } catch (e) {

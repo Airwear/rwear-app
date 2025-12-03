@@ -3,7 +3,7 @@ import Colors from '@/constants/Colors';
 import { useEffect, useState } from 'react';
 import { _get, } from '@/services/api';
 import { Pedometer } from 'expo-sensors';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform, Alert } from 'react-native';
 import { icons } from '@/utils';
 
 export default function TabPodometreScreen() {
@@ -11,23 +11,49 @@ export default function TabPodometreScreen() {
   const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking');
   const [pastStepCount, setPastStepCount] = useState(0);
   const [currentStepCount, setCurrentStepCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const stepLast24h = 'Étapes effectuées au cours des dernières 24 heures';
-  const stepDescription = "L’activité physique permet en effet de réduire une surcharge pondérale, de contrôler la glycémie (sucre dans le sang), la tension artérielle et le cholesterol. Il est ainsi recommandé de pratiquer au moins 30 minutes d’exercice modérée 3 fois par semaine.";
+  const stepDescription = "L'activité physique permet en effet de réduire une surcharge pondérale, de contrôler la glycémie (sucre dans le sang), la tension artérielle et le cholesterol. Il est ainsi recommandé de pratiquer au moins 30 minutes d'exercice modérée 3 fois par semaine.";
+
+  const requestPermission = async () => {
+    if (Platform.OS === 'android' && Platform.Version >= 29) {
+      try {
+        const { status } = await Pedometer.requestPermissionsAsync();
+        if (status !== 'granted') {
+          setError('Permission refusée pour le podomètre');
+          Alert.alert('Permission requise', 'Autorisation requise pour suivre vos pas');
+          return false;
+        }
+        return true;
+      } catch (e) {
+        console.warn('Permission request error:', e);
+        return true; // Fallback
+      }
+    }
+    return true;
+  };
 
   const subscribe = async () => {
-    
-    const isAvailable = await Pedometer.isAvailableAsync();
+    try {
+      const permissionGranted = await requestPermission();
+      if (!permissionGranted) {
+        setIsPedometerAvailable('denied');
+        return;
+      }
 
-    setIsPedometerAvailable(String(isAvailable));
+      const isAvailable = await Pedometer.isAvailableAsync();
 
-    if (isAvailable) {
+      setIsPedometerAvailable(String(isAvailable));
+
+      if (!isAvailable) {
+        setError('Podomètre non disponible sur cet appareil');
+        return;
+      }
 
       const end = new Date();
       const start = new Date();
       start.setDate(end.getDate() - 1);
-
-      console.log(start, start.setDate(end.getDate() - 1))
 
       const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
 
@@ -39,6 +65,10 @@ export default function TabPodometreScreen() {
       return Pedometer.watchStepCount(result => {
         setCurrentStepCount(prevState => prevState + result.steps);
       });
+    } catch (err) {
+      console.error('Erreur podomètre:', err);
+      setError('Erreur lors de l\'initialisation du podomètre');
+      setIsPedometerAvailable('error');
     }
   };
 
@@ -67,9 +97,15 @@ export default function TabPodometreScreen() {
         />
 
         <View style={{marginBottom: 16}} />
-          <Title text={stepLast24h.toLocaleUpperCase()} weight='bold' align='center' />
-          <Title text={String(currentStepCount)} color={Colors.danger} weight='bold' align='center' size={75} />
-          <Title text={stepDescription} size={15} align='center' color={Colors.muted} />
+          {error ? (
+            <Title text={error} color={Colors.danger} weight='bold' align='center' size={18} />
+          ) : (
+            <>
+              <Title text={stepLast24h.toLocaleUpperCase()} weight='bold' align='center' />
+              <Title text={String(currentStepCount)} color={Colors.danger} weight='bold' align='center' size={75} />
+              <Title text={stepDescription} size={15} align='center' color={Colors.muted} />
+            </>
+          )}
         </View>
     </FlexContainer>
   );

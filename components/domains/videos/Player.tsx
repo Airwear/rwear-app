@@ -1,4 +1,4 @@
-import { View, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { VideoRawType } from "@/utils/type-def";
 import { Video, AVPlaybackStatus, VideoReadyForDisplayEvent, VideoFullscreenUpdateEvent, ResizeMode } from 'expo-av';
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -9,7 +9,7 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { TimeUpdateEventPayload, useVideoPlayer, VideoView } from 'expo-video';
 import { useEventListener } from "expo";
 import { useFocusEffect } from 'expo-router';
-import { CastButton } from 'react-native-google-cast';
+import { CastButton, CastContext } from 'react-native-google-cast';
 
 export default function Player(video: VideoRawType) {
 
@@ -112,53 +112,100 @@ export default function Player(video: VideoRawType) {
         }
     }, [])
 
+    // Configure Cast avec l'URL de la vidéo
+    useEffect(() => {
+        if (video.url) {
+            try {
+                CastContext.setSharedMediaInfo({
+                    mediaInfo: {
+                        contentId: video.url,
+                        contentType: 'video/mp4',
+                        streamType: 'BUFFERED',
+                        metadata: {
+                            type: 0,
+                            metadataType: 0,
+                            title: video.designation || 'Video',
+                            subtitle: video.category_name || 'AIRWEAR',
+                            images: video.cover ? [{ url: video.cover }] : [],
+                        },
+                        customData: {
+                            autoPlay: true,
+                            preloadedContent: {
+                                mediaUrl: video.url,
+                            },
+                        },
+                    },
+                });
+                console.log('Cast config set for:', video.url);
+            } catch (err) {
+                console.log('Cast config info:', err);
+            }
+        }
+    }, [video.url, video.designation, video.category_name, video.cover])
+
     return (
-        <View style={styles.container}>
-            
+        <View style={styles.screenContainer}>
+            {/* Cast Button - Fixed overlay OUTSIDE the video container */}
+            <View style={styles.castButtonWrapper}>
+                <CastButton
+                    style={styles.castButton}
+                    tintColor="white"
+                />
+            </View>
+
             {! ready && <Loader visible />}
             {video.url && (
-                <>
-                    <Video
-                        style={styles.video}
-                        ref={player}
-                        source={{
-                            uri: video.url
-                        }}
-                        useNativeControls
-                        resizeMode={ResizeMode.CONTAIN}
-                        isLooping={false}
-                        onLoad={_onLoad}
-                        onLoadStart={_onLoadStart}
-                        onReadyForDisplay={_onReadyForDisplay}
-                        onPlaybackStatusUpdate={_onPlaybackStatusUpdate}
-                        onFullscreenUpdate={onFullscreenUpdate}
-                    />
-                    <CastButton
-                        style={styles.castButton}
-                        tintColor="white"
-                    />
-                </>
+                <Video
+                    style={styles.video}
+                    ref={player}
+                    source={{
+                        uri: video.url,
+                        mimeType: 'video/mp4'
+                    }}
+                    useNativeControls
+                    resizeMode={ResizeMode.CONTAIN}
+                    isLooping={false}
+                    onLoad={_onLoad}
+                    onLoadStart={_onLoadStart}
+                    onReadyForDisplay={_onReadyForDisplay}
+                    onPlaybackStatusUpdate={_onPlaybackStatusUpdate}
+                    onFullscreenUpdate={onFullscreenUpdate}
+                />
             )} 
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1
+    screenContainer: {
+        flex: 1,
+        position: 'relative',
+        backgroundColor: '#000',
     },
 
     video: {
        flex: 1 
     },
 
-    castButton: {
+    castButtonWrapper: {
         position: 'absolute',
-        top: 20,
-        right: 20,
+        top: 16,
+        right: 16,
+        width: 56,
+        height: 56,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        borderRadius: 28,
+        zIndex: 999999,
+        elevation: 100, // For Android - ensures it's on top
+        pointerEvents: 'box-none', // Allow clicks to pass through
+    },
+
+    castButton: {
         width: 48,
         height: 48,
         tintColor: 'white',
-        zIndex: 9999,
+        pointerEvents: 'auto',
     },
 })

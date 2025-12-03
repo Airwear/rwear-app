@@ -1,11 +1,14 @@
 import axios from "axios"
 
-const host = 'https://rwear-sport.octet-group.org/api';
-const baseRoute : string = 'https://optikar.octet-group.org';
+// Domaine API principal (modifiable via variable d'environnement Expo)
+const defaultApiHost = 'https://rwear-sport.octet-group.org/api';
+// Domaine web (pages, policy, CGU, map) – ajuster si nécessaire
+const baseRoute: string = 'https://optikar.octet-group.org';
 
-const URL_POLICY = baseRoute + "https://rwear-sport.octet-group.org/policy"
-const URL_CGU = baseRoute + "https://rwear-sport.octet-group.org/cgu"
-const URL_MAP = baseRoute + "/map"
+// Construire correctement les URLs (avant il y avait une concat invalide)
+const URL_POLICY = 'https://rwear-sport.octet-group.org/policy';
+const URL_CGU = 'https://rwear-sport.octet-group.org/cgu';
+const URL_MAP = baseRoute + '/map';
 
 const apiRoutes = {
     login: '/users/login',
@@ -29,99 +32,117 @@ const webRoutes = {
     URL_MAP
 }
 
+// BaseURL dynamique: priorise EXPO_PUBLIC_API_URL sinon fallback sur defaultApiHost
+const resolvedBaseURL = process.env.EXPO_PUBLIC_API_URL || defaultApiHost;
+
 const axiosInstance = axios.create({
-    baseURL: host,
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    },
-    timeout: 10000, // temps limite pour les requêtes (en ms)
+  baseURL: resolvedBaseURL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  timeout: 15000, // léger allongement pour connexions lentes
 });
 
-// Gestion des requêtes et des réponses
+// Permet de mettre à jour le token après authentification
+function setAuthToken(token?: string) {
+  if (token) {
+    axiosInstance.defaults.headers.Authorization = `Bearer ${token}`;
+  } else {
+    delete axiosInstance.defaults.headers.Authorization;
+  }
+}
+
+// Intercepteur requêtes (log limité au mode dev)
 axiosInstance.interceptors.request.use(
-    config => {
-      // Ajoute des configurations supplémentaires si nécessaire
-      // Par exemple, ajouter un token d'authentification
-      const token = "MY APP TOKEN HERE";
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const fullUrl = `${config.baseURL}${config.url}`;
-
-      console.log('Full URL:', fullUrl);
-
-      return config;
-    },
-    error => {
-      return Promise.reject(error);
+  config => {
+    if (__DEV__) {
+      const fullUrl = `${config.baseURL || ''}${config.url || ''}`;
+      console.log('[API][REQ]', config.method?.toUpperCase(), fullUrl);
     }
+    return config;
+  },
+  error => Promise.reject(error)
 );
 
 axiosInstance.interceptors.response.use(
-    response => {
-      // Gère les réponses avec succès
-      return response;
-    },
-    error => {
-      // Gère les erreurs de réponse
-      if (error.response) {
-        // Le serveur a répondu avec un statut différent de 2xx
-        console.error('Error Response:', error.response);
-      } else if (error.request) {
-        // La requête a été envoyée mais aucune réponse n'a été reçue
-        console.error('Error Request:', error.request);
-      } else {
-        // Quelque chose s'est passé lors de la configuration de la requête
-        console.error('Error Message:', error.message);
-      }
-
-      return Promise.reject(error);
+  response => {
+    if (__DEV__) {
+      console.log('[API][RES]', response.status, response.config.url);
     }
-  );
+    return response;
+  },
+  error => {
+    let extractedMessage = 'Erreur réseau';
+    if (error.response) {
+      extractedMessage = error.response.data?.message || `HTTP ${error.response.status}`;
+      if (__DEV__) console.error('[API][ERR][RESP]', error.response.status, extractedMessage);
+    } else if (error.request) {
+      if (__DEV__) console.error('[API][ERR][NO_RESP]', error.message);
+      extractedMessage = 'Serveur injoignable';
+    } else {
+      if (__DEV__) console.error('[API][ERR][CONF]', error.message);
+      extractedMessage = error.message;
+    }
+    // Attache un message propre pour le catch
+    (error as any).friendlyMessage = extractedMessage;
+    return Promise.reject(error);
+  }
+);
 
 
 
 function _post(path: string, data: any, controller: AbortController, headers: any = {}) {
-
-    console.log('with data', data)
-
-    return axiosInstance
-        .post(path, data, {
-            signal : controller?.signal,
-                ...headers
-        })
-        .then(response => response.data)
+  if (__DEV__) console.log('[API][_POST]', path, data);
+  return axiosInstance
+    .post(path, data, {
+      signal: controller?.signal,
+      ...headers,
+    })
+    .then(response => response.data);
 }
 
 function _put(path: string, data: any, controller: AbortController, headers: any = {}) {
-
-    console.log('remote PUT:', path)
-    console.log('with data', data)
-
-    return axiosInstance
-        .put(path, data, {
-            signal : controller?.signal,
-            ...headers
-        })
-        .then(response => response.data)
+  if (__DEV__) {
+    console.log('[API][_PUT]', path);
+    console.log('[API][_PUT][DATA]', data);
+  }
+  return axiosInstance
+    .put(path, data, {
+      signal: controller?.signal,
+      ...headers,
+    })
+    .then(response => response.data);
 }
 
-function _get(path: string,  controller: AbortController, headers: any = {}) {
-    console.log('remote GET:', path)
-    return axiosInstance
-        .get(path,  {
-            ...headers,
-            signal: controller?.signal,
-        })
-        .then(response => response.data)
+function _get(path: string, controller: AbortController, headers: any = {}) {
+  if (__DEV__) console.log('[API][_GET]', path);
+  return axiosInstance
+    .get(path, {
+      ...headers,
+      signal: controller?.signal,
+    })
+    .then(response => response.data);
+}
+
+// Vérifie rapidement l'accessibilité du backend (renvoie true/false)
+async function pingBackend(): Promise<boolean> {
+  try {
+    // On tente juste une requête GET sur / (selon API peut renvoyer 404 mais accessible)
+    await axiosInstance.get('/');
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 export {
-    _post,
-    _get,
-    _put,
-    apiRoutes,
-    webRoutes,
+  _post,
+  _get,
+  _put,
+  apiRoutes,
+  webRoutes,
+  setAuthToken,
+  resolvedBaseURL,
+  pingBackend,
 }

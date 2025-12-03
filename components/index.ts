@@ -14,6 +14,7 @@ import * as Form from './inputs/index'
 import RequiredInfo from './RequiredInfo'
 import PressableHeader from './PressableHeader'
 import AppPolicy from './AppPolicy'
+import CastButton from './domains/videos/CastButton'
 import ForgetPasswordLink from './ForgetPasswordLing'
 import { ButtonWithIcon } from './buttons/ButtonSimple'
 import UserHeader from './UserHeader'
@@ -39,6 +40,7 @@ export {
     RequiredInfo,
     PressableHeader,
     AppPolicy,
+    CastButton,
     ForgetPasswordLink,
     ButtonWithIcon,
     UserHeader,

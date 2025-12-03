@@ -6,13 +6,15 @@ export default function VideoCastScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Écran de diffusion vidéo 🎥</Text>
 
-      {/* Emplacement pour intégrer mon composant de cast vidéo */}
-      <CastButton 
-        videoUrl="https://example.com/video.mp4"
-        videoTitle="Airwear Promo"
-        videoSubtitle="Présentation du produit"
-        thumbnailUrl="https://example.com/thumbnail.jpg"
-        duration={120}
+      {/* Bouton Cast toujours visible, utilisant une source de test */}
+      <CastButton
+        getCurrentMedia={() => ({
+          url: 'https://example.com/video.mp4',
+          contentType: 'video/mp4',
+          title: 'Airwear Promo',
+          imageUrl: 'https://example.com/thumbnail.jpg',
+          position: 0,
+        })}
       />
     </View>
   );

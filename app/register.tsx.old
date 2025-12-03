@@ -1,24 +1,23 @@
 import { Text,  StyleSheet, View, ScrollView} from 'react-native';
 import { AppPolicy, FlexContainer, ForgetPasswordLink, Form, ImageViewer, Loader, Title, } from '@/components';
-import { useNavigation, router  } from 'expo-router';
+import { useNavigation, router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@/constants/Colors';
 import { ButtonSimple } from '@/components/buttons';
 import {useApp, useAuth} from '@/hooks';
 import { icons } from '@/utils';
 
-export default function IndexScreen() {
+export default function RegisterScreen() {
 
   const navigation = useNavigation();
-  const {  signIn, loading, error, logged } = useAuth();
+  const {  register, registering, error } = useAuth();
   const { label } = useApp();
 
   const [values, setValues] = useState<any>({
-    email: '',
-    password: '',
+    login: undefined,
+    email: undefined,
+    password: undefined,
   })
-  const [info, setInfo] = useState<string>('');
 
   const handleChange = (value: string, target : 'login' | 'password' | 'email') => {
     setValues({
@@ -27,46 +26,22 @@ export default function IndexScreen() {
     })
   }
 
-  const handleSubmit = async () => {
-    const {email, password} = values
-    if((email !== undefined && password !== undefined)) {
-      await signIn(email, password)
-      // Vérifier si la connexion a réussi
-      // Si pas d'erreur, rediriger vers l'écran d'accueil
+  const handleSubmit = () => {
+    const {email, password, login} = values
+    if(email && password && login) {
+      register(email, login, password)
+        .then(() => {
+          router.push('/sign-in');
+        })
+        .catch(() => {})
     }
-  }
-
-  const newAccount = () => {
-    // Aller vers l'écran d'inscription complet
-    router.push('/register')
   }
 
   useEffect(() => {
     navigation.setOptions({ 
-      title: label.action.login
+      title: label.action.new_account
     });
   }, [navigation]);
-
-  useEffect(() => {
-    // Pré-remplir email si on vient de créer un compte
-    AsyncStorage.getItem('@lastRegisteredEmail')
-      .then(email => {
-        if (email) {
-          setValues((v: any) => ({ ...v, email }));
-          setInfo('Compte créé, veuillez saisir votre mot de passe.');
-          // Optionnel: nettoyer pour ne pas recharger à chaque fois
-          AsyncStorage.removeItem('@lastRegisteredEmail');
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    // Si connexion réussie (logged = true et pas d'erreur), rediriger
-    if (logged && !error) {
-      router.replace('/(app)');
-    }
-  }, [logged, error]);
 
   return (
     <FlexContainer color={Colors.white} push>
@@ -83,7 +58,14 @@ export default function IndexScreen() {
         <ScrollView>
 
             {error.length > 0 && <Title text={error} color={Colors.danger} size={15} />}
-            {info.length > 0 && <Title text={info} color={Colors.primary} size={14} />}
+
+            <Form.Input 
+              label={label.user.username} 
+              value={values['login']}
+              placeholder={label.user.username}
+              onChangeText={(value: string) => handleChange(value, 'login')}
+              error={undefined}
+            />
 
             <Form.Input 
               label={label.user.email} 
@@ -101,26 +83,17 @@ export default function IndexScreen() {
               error={undefined}
               secureTextEntry
             />
+
+            {/** <ForgetPasswordLink /> */}
             
-            <View style={{height: 10}} />
-
-            <ButtonSimple 
-              text={label.action.login}
-              color={Colors.primary}
-              onPress={handleSubmit}
-              showIndicator={loading}
-              disabled={loading}
-            />
-
             <View style={{height: 20}} />
 
             <ButtonSimple 
-              text={label.action.new_account}
-              color={Colors.danger}
-              onPress={newAccount}
-              disabled={loading}
+              text={label.action.submit}
+              color={Colors.primary}
+              onPress={handleSubmit}
+              showIndicator={registering}
             />
-
            <AppPolicy />
         </ScrollView>
       

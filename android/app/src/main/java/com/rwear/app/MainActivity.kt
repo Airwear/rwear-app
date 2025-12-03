@@ -4,6 +4,10 @@ import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
+import android.widget.Toast
+import java.io.File
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -14,17 +18,34 @@ import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
-    // Set the theme to AppTheme BEFORE onCreate to support
-    // coloring the background, status bar, and navigation bar.
-    // This is required for expo-splash-screen.
-    // setTheme(R.style.AppTheme);
-    // @generated begin expo-splashscreen - expo prebuild (DO NOT MODIFY) sync-f3ff59a738c56c9a6119210cb55f0b613eb8b6af
-    SplashScreenManager.registerOnActivity(this)
-    // @generated end expo-splashscreen
-    super.onCreate(null)
-// @generated begin react-native-google-cast-onCreate - expo prebuild (DO NOT MODIFY) sync-489050f2bf9933a98bbd9d93137016ae14c22faa
-    RNGCCastContext.getSharedInstance(this)
-// @generated end react-native-google-cast-onCreate
+    // Crash handler ultra simple: log dans fichier + Logcat + Toast
+    Thread.setDefaultUncaughtExceptionHandler { t, e ->
+      try {
+        val f = File(getExternalFilesDir(null), "crash.log")
+        f.appendText("${System.currentTimeMillis()} THREAD=${t.name}\n${e.stackTraceToString()}\n\n")
+      } catch (_: Exception) {}
+      android.util.Log.e("RWEAR", "UNCAUGHT: ${e.message}", e)
+    }
+    try {
+      android.util.Log.i("RWEAR", "MainActivity.onCreate: START")
+      // @generated begin expo-splashscreen - expo prebuild (DO NOT MODIFY)
+      SplashScreenManager.registerOnActivity(this)
+      // @generated end expo-splashscreen
+
+      // Activer edge-to-edge pour conformité SDK 35 avec rétrocompatibilité
+      enableEdgeToEdge()
+      // SafeAreaProvider (JS) gère les insets système
+
+      super.onCreate(null)
+
+      // Initialisation Google Cast pour permettre la diffusion vers Chromecast
+      RNGCCastContext.getSharedInstance(this)
+
+      android.util.Log.i("RWEAR", "MainActivity.onCreate: END")
+    } catch (e: Exception) {
+      android.util.Log.e("RWEAR", "Crash in onCreate: ${e.message}", e)
+      throw e
+    }
   }
 
   /**

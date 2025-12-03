@@ -2,16 +2,18 @@ import { useEvent, useEventListener  } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { StyleSheet, View, Button } from 'react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { VideoRawType } from '@/utils/type-def';
 import Loader from '@/components/Loader';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { CastButton } from 'react-native-google-cast';
+import { CastButton, CastContext } from 'react-native-google-cast';
 
 export default function Player1(video: VideoRawType) {
 
+  const router = useRouter();
+  
   const player = useVideoPlayer(video.url, player => {
-    player.loop = true;
+    player.loop = false;
     player.currentTime = 0;
     player.play();
     player.timeUpdateEventInterval = 5;
@@ -67,6 +69,15 @@ export default function Player1(video: VideoRawType) {
 
   };
 
+  const handleExitFullscreen = useCallback(() => {
+    console.log('Exiting fullscreen');
+    applyPortrait().catch(err => console.warn('Erreur orientation:', err));
+  }, []);
+
+  const handlePlayerError = useCallback((error: any) => {
+    console.error('Player error:', error);
+  }, []);
+
   useEffect(() => {
     if (status === READY_TO_PLAY) {
       applyLandscape().catch(err => console.warn('Erreur landscape:', err));
@@ -94,41 +105,100 @@ export default function Player1(video: VideoRawType) {
     }, [player])
   );
 
+  const handleBackPress = useCallback(() => {
+    if (player) {
+      player.pause();
+    }
+    applyPortrait().catch(err => console.warn('Erreur orientation:', err));
+    router.back();
+  }, [player, router]);
+
+  // Configure Cast avec l'URL de la vidéo
+  useEffect(() => {
+    if (video.url) {
+      try {
+        // Prepare casting metadata with audio configuration
+        CastContext.setSharedMediaInfo({
+          mediaInfo: {
+            contentId: video.url,
+            contentType: 'video/mp4',
+            streamType: 'BUFFERED',
+            metadata: {
+              type: 0, // GENERIC
+              metadataType: 0,
+              title: video.designation || 'Video',
+              subtitle: video.category_name || 'AIRWEAR',
+              images: video.cover ? [{ url: video.cover }] : [],
+            },
+            customData: {
+              autoPlay: true,
+              preloadedContent: {
+                mediaUrl: video.url,
+              },
+            },
+            // Ensure audio is included
+            tracks: [
+              {
+                trackId: 1,
+                type: 'TEXT',
+                subtype: 'SUBTITLE',
+                name: 'English',
+                language: 'en-US',
+              },
+            ],
+          },
+        });
+        console.log('Cast config set for:', video.url);
+      } catch (err) {
+        console.log('Cast config info:', err);
+      }
+    }
+  }, [video.url, video.designation, video.category_name, video.cover]);
+
   if(status !== READY_TO_PLAY) {
     return <Loader visible />
   }
 
   return (
-    <View style={styles.contentContainer}>
-      <VideoView 
-        style={styles.video} 
-        player={player} 
-        allowsFullscreen 
-        allowsPictureInPicture
-        //@ts-ignore
-        ref={videoViewRef} 
-       />
-      <CastButton
-        style={styles.castButton}
-        tintColor="white"
-      />
-      <View style={styles.controlsContainer}>
-        <Button
-          title={isPlaying ? 'Pause' : 'Play'}
-          onPress={() => {
-            if (isPlaying) {
-              player.pause();
-            } else {
-              player.play();
-            }
-          }}
+    <View style={styles.screenContainer}>
+      {/* Cast Button - Fixed overlay OUTSIDE the video container */}
+      <View style={styles.castButtonWrapper}>
+        <CastButton
+          style={styles.castButton}
+          tintColor="white"
         />
+      </View>
+
+      {/* Video Player Container */}
+      <View style={styles.contentContainer}>
+        <VideoView 
+          style={styles.video} 
+          player={player} 
+          allowsFullscreen 
+          allowsPictureInPicture
+          nativeControls={true}
+          //@ts-ignore
+          ref={videoViewRef}
+         />
+        <View style={styles.controlsContainer}>
+          <Button
+            title="Retour"
+            onPress={handleBackPress}
+            color="#007AFF"
+          />
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+
+  screenContainer: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: '#000',
+  },
 
   contentContainer: {
     flex: 1,
@@ -143,14 +213,26 @@ const styles = StyleSheet.create({
     height: 275,
   },
 
-  castButton: {
+  castButtonWrapper: {
     position: 'absolute',
-    top: 20,
-    right: 20,
+    top: 16,
+    right: 16,
+    width: 56,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 28,
+    zIndex: 999999,
+    elevation: 100, // For Android - ensures it's on top
+    pointerEvents: 'box-none', // Allow clicks to pass through
+  },
+
+  castButton: {
     width: 48,
     height: 48,
     tintColor: 'white',
-    zIndex: 9999,
+    pointerEvents: 'auto',
   },
 
   controlsContainer: {

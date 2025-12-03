@@ -1,127 +1,197 @@
-import { Text,  StyleSheet, View, ScrollView} from 'react-native';
-import { AppPolicy, FlexContainer, ForgetPasswordLink, Form, ImageViewer, Loader, Title, } from '@/components';
-import { useNavigation } from 'expo-router';
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { Text, StyleSheet, ScrollView, View, TouchableOpacity } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
+import { FlexContainer, ImageViewer, Form, AppPolicy } from '@/components';
+import Dropdown from '@/components/inputs/Dropdown';
 import { ButtonSimple } from '@/components/buttons';
-import {useApp, useAuth} from '@/hooks';
 import { icons } from '@/utils';
+import { useAuth } from '@/hooks';
 
-export default function RegisterScreen() {
+const goalOptions = [
+  'remise en forme',
+  'perte de poids',
+  'raffermir le corps',
+  'ventre plat',
+  'prise de masse musculaire',
+  'relaxation (yoga, Stretch)'
+];
+const pathologyOptions = [
+  'Non',
+  'Diabète',
+  'Cancer',
+  'Maladies cardiovasculaire',
+  'Autres'
+];
 
-  const navigation = useNavigation();
-  const {  register, registering, error } = useAuth();
-  const { label } = useApp();
+export default function RegistrationScreen() {
+  const router = useRouter();
+  const { register, registering, error: authError } = useAuth();
 
-  const [values, setValues] = useState<any>({
-    login: undefined,
-    email: undefined,
-    password: undefined,
-  })
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [goal, setGoal] = useState<string>('');
+  const [pathology, setPathology] = useState<string>('');
+  const [pathologyOther, setPathologyOther] = useState<string>('');
+  const [password, setPassword] = useState('');
 
-  const handleChange = (value: string, target : 'login' | 'password' | 'email') => {
-    setValues({
-      ...values,
-      [target]: value
-    })
-  }
+  const [localError, setLocalError] = useState('');
 
-  const handleSubmit = () => {
-    const {email, password, login} = values
-    if(email !== undefined && password !== undefined && login !== undefined) {
-      register(email, login, password)
+  const handleRegister = async () => {
+    if (!email || !password || !username) {
+      setLocalError('Email, pseudo et mot de passe sont obligatoires');
+      return;
     }
-  }
 
-  useEffect(() => {
-    navigation.setOptions({ 
-      title: label.action.new_account
-    });
-  }, [navigation]);
+    setLocalError('');
+
+    try {
+      // Appel API backend via authContext
+      await register(email, username, password);
+      
+      // Si succès (pas d'erreur), rediriger vers sign-in
+      // Note: les autres données (poids, taille, etc.) devront être envoyées
+      // via un endpoint séparé après connexion
+      if (!authError) {
+        router.replace('/sign-in');
+      }
+    } catch (err: any) {
+      console.error('Erreur inscription:', err);
+    }
+  };
 
   return (
     <FlexContainer color={Colors.white} push>
+      <Stack.Screen options={{ title: 'Inscription' }} />
 
       <ImageViewer 
         placeholderImageSource={icons.logo} 
         width={125}
         height={125}
-
       />
 
       <View style={styles.container}>
-
         <ScrollView>
+          {(authError.length > 0 || localError.length > 0) && (
+            <Text style={styles.error}>{authError || localError}</Text>
+          )}
 
-            {error.length > 0 && <Title text={error} color={Colors.danger} size={15} />}
+          <Text style={styles.sectionTitle}>Identification</Text>
+          <Form.Input label="Nom" placeholder="Nom" value={name} onChangeText={setName} error={undefined} />
+          <Form.Input label="Adresse mail" placeholder="Adresse mail" value={email} onChangeText={setEmail} error={undefined} keyboardType="default" />
+          <Form.Input label="Pseudo" placeholder="Pseudo" value={username} onChangeText={setUsername} error={undefined} />
+          <Form.Input label="Date de naissance" placeholder="JJ/MM/AAAA" value={birthDate} onChangeText={setBirthDate} error={undefined} />
+          <Form.Input label="Tel (WhatsApp)" placeholder="Téléphone" value={phone} onChangeText={setPhone} error={undefined} keyboardType="phone-pad" />
 
-            <Form.Input 
-              label={label.user.username} 
-              value={values['login']}
-              placeholder={label.user.username}
-              onChangeText={(value: string) => handleChange(value, 'login')}
+          <Text style={styles.sectionTitle}>Localisation</Text>
+          <Form.Input label="Pays" placeholder="Pays" value={country} onChangeText={setCountry} error={undefined} />
+          <Form.Input label="Ville" placeholder="Ville" value={city} onChangeText={setCity} error={undefined} />
+
+          <Text style={styles.sectionTitle}>Données corporelles</Text>
+          <Form.Input label="Poids (kg)" placeholder="Poids" value={weight} onChangeText={setWeight} error={undefined} keyboardType="numeric" />
+          <Form.Input label="Taille (cm)" placeholder="Taille" value={height} onChangeText={setHeight} error={undefined} keyboardType="numeric" />
+
+          <Text style={styles.sectionTitle}>Objectif</Text>
+          <Dropdown 
+            data={goalOptions.map((opt: string) => ({ key: opt, value: opt }))}
+            placeholder="Sélectionner un objectif"
+            onSelect={(selected: string) => setGoal(selected)}
+          />
+
+          <Text style={styles.sectionTitle}>Avez-vous une pathologie ?</Text>
+          <Dropdown 
+            data={pathologyOptions.map((opt: string) => ({ key: opt, value: opt }))}
+            placeholder="Sélectionner une pathologie"
+            onSelect={(selected: string) => setPathology(selected)}
+          />
+          {pathology === 'Autres' && (
+            <Form.Input
+              label="Précisez"
+              placeholder="Précisez la pathologie"
+              value={pathologyOther}
+              onChangeText={setPathologyOther}
               error={undefined}
             />
+          )}
 
-            <Form.Input 
-              label={label.user.email} 
-              value={values['email']}
-              placeholder={label.user.emailAddress}
-              onChangeText={(value: string) => handleChange(value, 'email')}
-              error={undefined}
-            />
+          <Text style={styles.sectionTitle}>Sécurité</Text>
+          <Form.InputPassword label="Mot de passe" placeholder="Mot de passe" value={password} onChangeText={setPassword} error={undefined} secureTextEntry />
 
-            <Form.InputPassword 
-              label={label.user.password} 
-              placeholder={label.user.password}
-              value={values['password']}
-              onChangeText={(value: string) => handleChange(value, 'password')}
-              error={undefined}
-              secureTextEntry
-            />
+          <View style={{ height: 10 }} />
 
-            {/** <ForgetPasswordLink /> */}
-            
-            <View style={{height: 20}} />
+          <ButtonSimple 
+            text="S'inscrire"
+            color={Colors.primary}
+            onPress={handleRegister}
+            showIndicator={registering}
+          />
 
-            <ButtonSimple 
-              text={label.action.submit}
-              color={Colors.primary}
-              onPress={handleSubmit}
-              showIndicator={registering}
-            />
-           <AppPolicy />
+          <View style={{ height: 10 }} />
+
+          <ButtonSimple 
+            text="Déjà un compte ? Se connecter"
+            color={Colors.danger}
+            onPress={() => router.push('/sign-in')}
+            showIndicator={false}
+          />
+
+          <AppPolicy />
         </ScrollView>
-      
       </View>
     </FlexContainer>
   );
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     paddingTop: 16,
-    //justifyContent: 'center'
   },
-
-  imageContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
+  error: { 
+    color: Colors.danger, 
+    marginBottom: 15, 
+    textAlign: 'center',
+    fontSize: 15 
   },
-
-  title: {
-    color: Colors.muted,
-    fontSize: 17
+  sectionTitle: { 
+    fontSize: 17, 
+    fontWeight: '600', 
+    marginTop: 16, 
+    marginBottom: 8,
+    color: Colors.muted 
   },
-
-  new: {
-    fontWeight: 'bold',
-    color: Colors.green
+  optionsWrap: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    marginBottom: 10 
   },
-
-  buttonAction: {
-    padding: 4
+  optionBtn: { 
+    paddingVertical: 8, 
+    paddingHorizontal: 12, 
+    borderRadius: 20, 
+    borderWidth: 1, 
+    borderColor: Colors.muted, 
+    marginRight: 8, 
+    marginBottom: 8,
+    backgroundColor: Colors.white 
   },
+  optionBtnSelected: { 
+    backgroundColor: Colors.primary, 
+    borderColor: Colors.primary 
+  },
+  optionText: { 
+    color: Colors.muted, 
+    fontSize: 13 
+  },
+  optionTextSelected: { 
+    color: '#fff', 
+    fontWeight: '600' 
+  }
 });

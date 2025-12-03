@@ -12,3 +12,27 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+# Keep React Native and Hermes essentials
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.hermes.** { *; }
+-keep class com.facebook.jni.** { *; }
+
+# Keep Google Cast
+-keep class com.google.android.gms.cast.framework.** { *; }
+
+# Keep Expo modules public API
+-keep class expo.modules.** { *; }
+
+# Keep React Navigation annotations
+-keep class androidx.navigation.** { *; }
+
+# Avoid warnings for Kotlin metadata
+-dontwarn kotlin.**
+
+# Remove log statements
+-assumenosideeffects class android.util.Log {
+	public static *** d(...);
+	public static *** v(...);
+	public static *** i(...);
+}
