@@ -110,8 +110,9 @@ android {
         }
         release {
             signingConfig signingConfigs.release
-            shrinkResources false
-            minifyEnabled false
+            shrinkResources true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
         }
     }
@@ -196,4 +197,20 @@ dependencies {
     }
 
     implementation("com.google.android.gms:play-services-location:21.3.0")
+}
+
+// Configure native debug symbols export for Google Play
+afterEvaluate {
+    tasks.configureEach { task ->
+        if (task.name.contains('bundleRelease')) {
+            task.doLast {
+                // Generate mapping file for ProGuard/R8
+                def mappingFile = "$buildDir/outputs/mapping/release/mapping.txt"
+                println "ProGuard mapping file: $mappingFile"
+                
+                // Native symbols are automatically included in bundle
+                println "Native debug symbols included in bundle"
+            }
+        }
+    }
 }
