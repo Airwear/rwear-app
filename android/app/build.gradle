@@ -79,8 +79,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Increment versionCode for Play Store submission with SDK 35, edge-to-edge, 16KB alignment
-        versionCode 10
-        versionName "1.0.4"
+        versionCode 11
+        versionName "1.0.5"
     }
     signingConfigs {
         debug {
