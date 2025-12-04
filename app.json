@@ -2,10 +2,11 @@
   "expo": {
     "name": "Rwear App",
     "slug": "rwear-app",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
+    "_comment": "Built and signed by: Simon Pierre",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",

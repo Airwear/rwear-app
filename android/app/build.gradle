@@ -1,3 +1,4 @@
+// Built and signed by: Simon Pierre
 apply plugin: "com.android.application"
 // @generated begin safeExtGet - expo prebuild (DO NOT MODIFY) sync-be4acad6508a6820102c74ab393bd7ab1093e6c0
 def safeExtGet(prop, fallback) {
