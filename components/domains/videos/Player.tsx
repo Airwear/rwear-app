@@ -1,4 +1,4 @@
-import { View, StyleSheet, Platform, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Platform, TouchableOpacity, useWindowDimensions, SafeAreaView } from "react-native";
 import { VideoRawType } from "@/utils/type-def";
 import { Video, AVPlaybackStatus, VideoReadyForDisplayEvent, VideoFullscreenUpdateEvent, ResizeMode } from 'expo-av';
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -16,7 +16,9 @@ export default function Player(video: VideoRawType) {
     const player = useRef<any>(undefined);
     const timer = useRef<any>(undefined);
     const slug = useRef<any>(undefined);
-    const {authData} = useAuth(); 
+    const {authData} = useAuth();
+    const dimensions = useWindowDimensions();
+    const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
     const [status, setStatus] = useState<any>({});
     const [ready, isReady] = useState<boolean>(false);
@@ -143,10 +145,19 @@ export default function Player(video: VideoRawType) {
         }
     }, [video.url, video.designation, video.category_name, video.cover])
 
+    // Détecter changements d'orientation
+    useEffect(() => {
+        const isLandscape = dimensions.width > dimensions.height;
+        const newOrientation = isLandscape ? 'landscape' : 'portrait';
+        if (newOrientation !== orientation) {
+            setOrientation(newOrientation);
+        }
+    }, [dimensions.width, dimensions.height, orientation]);
+
     return (
-        <View style={styles.screenContainer}>
+        <SafeAreaView style={styles.screenContainer}>
             {/* Cast Button - Fixed overlay OUTSIDE the video container */}
-            <View style={styles.castButtonWrapper}>
+            <View style={[styles.castButtonWrapper, orientation === 'landscape' ? styles.castButtonLandscape : styles.castButtonPortrait]} pointerEvents="box-none">
                 <CastButton
                     style={styles.castButton}
                     tintColor="white"
@@ -172,7 +183,7 @@ export default function Player(video: VideoRawType) {
                     onFullscreenUpdate={onFullscreenUpdate}
                 />
             )} 
-        </View>
+        </SafeAreaView>
     )
 }
 
@@ -189,17 +200,25 @@ const styles = StyleSheet.create({
 
     castButtonWrapper: {
         position: 'absolute',
-        top: 16,
-        right: 16,
         width: 56,
         height: 56,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
         borderRadius: 28,
-        zIndex: 999999,
-        elevation: 100, // For Android - ensures it's on top
-        pointerEvents: 'box-none', // Allow clicks to pass through
+        zIndex: 9999,
+        elevation: 1000, // For Android - ensures it's on top
+    },
+
+    castButtonPortrait: {
+        top: 20,
+        right: 20,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    },
+
+    castButtonLandscape: {
+        top: 16,
+        right: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
     },
 
     castButton: {

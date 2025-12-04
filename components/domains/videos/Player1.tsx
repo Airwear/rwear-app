@@ -1,6 +1,6 @@
 import { useEvent, useEventListener  } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { StyleSheet, View, Button } from 'react-native';
+import { StyleSheet, View, Button, useWindowDimensions, SafeAreaView } from 'react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { VideoRawType } from '@/utils/type-def';
@@ -11,6 +11,8 @@ import { CastButton, CastContext } from 'react-native-google-cast';
 export default function Player1(video: VideoRawType) {
 
   const router = useRouter();
+  const dimensions = useWindowDimensions();
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
   
   const player = useVideoPlayer(video.url, player => {
     player.loop = false;
@@ -37,6 +39,15 @@ export default function Player1(video: VideoRawType) {
     setCurrentTimer(payload.currentTime)
     console.log('Player timeUpdate changed: ', payload.currentTime);
   });
+
+  // Détecter changements d'orientation
+  useEffect(() => {
+    const isLandscape = dimensions.width > dimensions.height;
+    const newOrientation = isLandscape ? 'landscape' : 'portrait';
+    if (newOrientation !== orientation) {
+      setOrientation(newOrientation);
+    }
+  }, [dimensions.width, dimensions.height, orientation]);
 
   async function applyLandscape() {
     try {
@@ -159,10 +170,14 @@ export default function Player1(video: VideoRawType) {
     return <Loader visible />
   }
 
+  const castButtonStyle = orientation === 'landscape' 
+    ? styles.castButtonLandscape 
+    : styles.castButtonPortrait;
+
   return (
-    <View style={styles.screenContainer}>
+    <SafeAreaView style={styles.screenContainer}>
       {/* Cast Button - Fixed overlay OUTSIDE the video container */}
-      <View style={styles.castButtonWrapper}>
+      <View style={[styles.castButtonWrapper, castButtonStyle]} pointerEvents="box-none">
         <CastButton
           style={styles.castButton}
           tintColor="white"
@@ -180,15 +195,17 @@ export default function Player1(video: VideoRawType) {
           //@ts-ignore
           ref={videoViewRef}
          />
-        <View style={styles.controlsContainer}>
-          <Button
-            title="Retour"
-            onPress={handleBackPress}
-            color="#007AFF"
-          />
-        </View>
+        {orientation === 'portrait' && (
+          <View style={styles.controlsContainer}>
+            <Button
+              title="Retour"
+              onPress={handleBackPress}
+              color="#007AFF"
+            />
+          </View>
+        )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -209,23 +226,32 @@ const styles = StyleSheet.create({
   },
 
   video: {
-    width: 350,
-    height: 275,
+    width: '100%',
+    height: '100%',
   },
 
   castButtonWrapper: {
     position: 'absolute',
-    top: 16,
-    right: 16,
     width: 56,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     borderRadius: 28,
-    zIndex: 999999,
-    elevation: 100, // For Android - ensures it's on top
-    pointerEvents: 'box-none', // Allow clicks to pass through
+    zIndex: 9999,
+    elevation: 1000, // For Android - ensures it's on top
+  },
+
+  castButtonPortrait: {
+    top: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+
+  castButtonLandscape: {
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
 
   castButton: {
