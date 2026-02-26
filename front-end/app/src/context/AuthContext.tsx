@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
 }
 
@@ -99,6 +100,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      await axios.delete(`${API_URL}/api/user`);
+      await logout();
+    } catch (error) {
+      console.error('Delete account error:', error);
+      throw error;
+    }
+  };
+
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
@@ -116,6 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
+        deleteAccount,
         updateUser,
       }}
     >
