@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
 }
 
@@ -42,6 +43,14 @@ const REGISTER_ENDPOINTS = [
   '/api/users/register',
   '/api/register',
   '/api/auth/register',
+];
+const DELETE_ACCOUNT_ENDPOINTS = [
+  '/user',
+  '/users/me',
+  '/users/account',
+  '/api/user',
+  '/api/users/me',
+  '/api/users/account',
 ];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -133,6 +142,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    let lastError: any = null;
+    for (const ep of DELETE_ACCOUNT_ENDPOINTS) {
+      try {
+        await axios.delete(`${API_BASE}${ep}`);
+        await logout();
+        return;
+      } catch (e: any) {
+        lastError = e;
+        const status = e?.response?.status;
+        if (status && status !== 404) break;
+      }
+    }
+    console.error('Delete account error:', lastError?.response?.status, lastError?.message);
+    throw lastError || new Error('Delete account failed');
+  };
+
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
@@ -150,6 +176,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
+        deleteAccount,
         updateUser,
       }}
     >
