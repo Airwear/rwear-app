@@ -1,8 +1,10 @@
-import { View, FlatList, Pressable, StyleSheet, Text } from "react-native";
+import React from "react";
+import { View, FlatList, Pressable, StyleSheet, Text, Alert } from "react-native";
 import { SettingType } from "@/utils/type-def";
 import Colors from "@/constants/Colors";
 import { Link } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
+import { useAuth } from "@/hooks";
 
 const _data: SettingType[] = [
     {
@@ -28,6 +30,33 @@ const _data: SettingType[] = [
 ]
 
 export default function Settings() {
+    const { deleteAccount } = useAuth();
+    const [deleting, setDeleting] = React.useState(false);
+
+    const onDeletePress = () => {
+        Alert.alert(
+            "Suppression du compte",
+            "Cette action est irréversible. Voulez-vous vraiment supprimer votre compte ?",
+            [
+                { text: "Annuler", style: "cancel" },
+                {
+                    text: "Supprimer",
+                    style: "destructive",
+                    onPress: async () => {
+                        if (!deleteAccount) return;
+                        try {
+                            setDeleting(true);
+                            await deleteAccount();
+                        } catch {
+                            Alert.alert("Erreur", "Impossible de supprimer le compte pour le moment.");
+                        } finally {
+                            setDeleting(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     const renderItem = ({ item }: any) => (
         <Link href={item.url} asChild>
@@ -59,6 +88,18 @@ export default function Settings() {
                 ItemSeparatorComponent={separator}
                 contentContainerStyle={styles.listContainer}
             />
+
+            <Pressable
+                onPress={onDeletePress}
+                disabled={!deleteAccount || deleting}
+                style={({ pressed }) => [
+                    styles.deleteButton,
+                    (!deleteAccount || deleting) && styles.deleteButtonDisabled,
+                    pressed && styles.deleteButtonPressed,
+                ]}
+            >
+                <Text style={styles.deleteText}>{deleting ? "Suppression..." : "Supprimer mon compte"}</Text>
+            </Pressable>
         </View>
     )
 }
@@ -120,4 +161,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row'
     },
+    deleteButton: {
+        marginTop: 12,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#fecaca',
+        backgroundColor: '#991b1b',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 48,
+    },
+    deleteButtonDisabled: {
+        opacity: 0.6,
+    },
+    deleteButtonPressed: {
+        opacity: 0.85,
+    },
+    deleteText: {
+        color: '#fee2e2',
+        fontWeight: '700',
+        fontSize: 14,
+    }
 })

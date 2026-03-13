@@ -4,9 +4,7 @@
     <item name="android:editTextStyle">@style/ResetEditText</item>
     <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     <item name="colorPrimary">@color/colorPrimary</item>
-    <!-- Edge-to-edge: transparent system bars so content can draw behind -->
-    <item name="android:statusBarColor">@android:color/transparent</item>
-    <item name="android:navigationBarColor">@android:color/transparent</item>
+    <!-- Edge-to-edge handled in MainActivity via enableEdgeToEdge() -->
     <!-- Light status/nav bar icons for visibility on light backgrounds -->
     <item name="android:windowLightStatusBar">true</item>
     <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>

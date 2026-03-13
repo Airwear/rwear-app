@@ -10,7 +10,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { Play, Clock, Flame } from 'lucide-react-native';
-import CastButton from '../components/video/CastButton';
+import { CastButton } from '../../../components/domains/videos/CastButton';
 import { RootStackParamList } from 'types/navigation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -79,7 +79,7 @@ export default function HomeScreen() {
           <Text style={styles.greeting}>Bonjour 👋</Text>
           <Text style={styles.subtitle}>Prêt pour votre entraînement ?</Text>
         </View>
-        <CastButton color="#1A1A1A" />
+        <CastButton tintColor="#1A1A1A" />
       </View>
 
       <ScrollView

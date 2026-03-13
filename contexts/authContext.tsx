@@ -1,7 +1,8 @@
 import React, {createContext, useState, useEffect, useContext} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContextType, AuthDataType } from '@/utils/type-def';
-import { _post, _put, apiRoutes, setAuthToken } from '@/services/api';
+import axios from 'axios';
+import { _post, _put, apiRoutes, setAuthToken, resolvedBaseURL } from '@/services/api';
 import { Loader } from '@/components';
 
 //Create the Auth Context with the data type specified
@@ -202,12 +203,44 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
       .finally(() => setRegistering(false));
   };
 
+  const deleteAccount = async () => {
+    const token = authData?.token || authData?.access_token || authData?.jwt || authData?.bearer || authData?.user?.token;
+    const userRef = authData?.slug || authData?.id;
+    const endpoints = [
+      userRef ? `/users/${userRef}` : undefined,
+      '/users/me',
+      '/user',
+      '/api/users/me',
+      '/api/user',
+    ].filter(Boolean) as string[];
+
+    let lastError: any = null;
+
+    for (const endpoint of endpoints) {
+      try {
+        await axios.delete(`${resolvedBaseURL}${endpoint}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        await signOut();
+        return;
+      } catch (error: any) {
+        lastError = error;
+        const status = error?.response?.status;
+        if (status && status !== 404) break;
+      }
+    }
+
+    const serverMsg = lastError?.response?.data?.message || lastError?.message || 'Erreur suppression du compte';
+    setError(serverMsg);
+    throw lastError || new Error(serverMsg);
+  };
+
   if(loading) {
     return <Loader visible />
   }
 
   return (
-    <AuthContext.Provider value={{authData, signIn, update, signOut, loading, logged, register, error, message, updating, registering, setUrl, baseUrl}}>
+    <AuthContext.Provider value={{authData, signIn, update, deleteAccount, signOut, loading, logged, register, error, message, updating, registering, setUrl, baseUrl}}>
       {props.children}
     </AuthContext.Provider>
   );

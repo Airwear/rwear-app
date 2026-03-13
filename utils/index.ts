@@ -182,4 +182,6 @@ export const icons = {
     play: require('../assets/images/videos/play.png'),
     logo: require('../assets/images/logo.png'),
     podometre: require('../assets/images/podometre.png'),
+    userProfile: require('../assets/images/profile.png'),
+    bgMan: require('../assets/images/adaptive-icon.png'),
 }

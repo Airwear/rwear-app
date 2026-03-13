@@ -2,11 +2,10 @@
   "expo": {
     "name": "Rwear App",
     "slug": "rwear-app",
-    "version": "1.0.6",
+    "version": "1.0.9",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
-    "_comment": "Built and signed by: Simon Pierre | v1.0.6 with R8/ProGuard optimization",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -41,7 +40,8 @@
           "motionPermission": "Allow Rwear to access motion & fitness data for step counting and activity tracking."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {

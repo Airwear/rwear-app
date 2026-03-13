@@ -11,7 +11,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'VideoPlayer'>;
 
 export default function VideoPlayer({ route, navigation }: Props) {
   const { videoUrl } = route.params;
-  const playerRef = useRef<Video>(null);
+  const playerRef = useRef<any>(null);
   const [castConnected, setCastConnected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
@@ -106,7 +106,6 @@ export default function VideoPlayer({ route, navigation }: Props) {
         onLoadStart={() => setLoading(true)}
         onLoad={() => { setLoading(false); setPaused(false); }}
         onError={(e) => { setError('Erreur lecture'); setLoading(false); }}
-        onSeek={() => setPaused(false)}
         playInBackground={false}
         playWhenInactive={false}
         progressUpdateInterval={250}

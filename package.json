@@ -14,16 +14,29 @@
   "jest": {
     "preset": "jest-expo"
   },
+  "expo": {
+    "doctor": {
+      "appConfigFieldsNotSyncedCheck": {
+        "enabled": false
+      },
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "expo-av"
+        ],
+        "listUnknownPackages": false
+      }
+    }
+  },
   "dependencies": {
     "@expo/vector-icons": "~14.0.4",
     "@react-native-async-storage/async-storage": "1.23.1",
-    "@react-native-community/datetimepicker": "^8.5.0",
+    "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-firebase/app": "^20.3.0",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/native": "^7.0.0",
     "@react-navigation/native-stack": "^7.2.0",
     "axios": "^1.7.2",
-    "expo": "~52.0.20",
+    "expo": "~52.0.49",
     "expo-av": "~15.0.2",
     "expo-constants": "~17.0.8",
     "expo-device": "~7.0.3",
@@ -32,7 +45,7 @@
     "expo-linking": "~7.0.5",
     "expo-location": "~18.0.10",
     "expo-notifications": "~0.29.0",
-    "expo-router": "~4.0.21",
+    "expo-router": "~4.0.22",
     "expo-screen-orientation": "~8.0.4",
     "expo-sensors": "~14.0.2",
     "expo-splash-screen": "~0.29.0",
@@ -44,7 +57,7 @@
     "react-dom": "18.3.1",
     "react-native": "0.76.9",
     "react-native-dropdown-select-list": "^2.0.5",
-    "react-native-gesture-handler": "^2.12.0",
+    "react-native-gesture-handler": "~2.20.2",
     "react-native-google-cast": "^4.9.1",
     "react-native-reanimated": "~3.16.1",
     "react-native-render-html": "^6.3.4",
@@ -64,6 +77,7 @@
     "jest-expo": "~52.0.2",
     "patch-package": "^8.0.1",
     "postinstall-postinstall": "^2.1.0",
+    "react-test-renderer": "^18.3.1",
     "typescript": "~5.3.3"
   }
 }

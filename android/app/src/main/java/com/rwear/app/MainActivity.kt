@@ -5,8 +5,6 @@ import expo.modules.splashscreen.SplashScreenManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.core.view.WindowCompat
-import android.widget.Toast
 import java.io.File
 
 import com.facebook.react.ReactActivity

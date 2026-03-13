@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import CastButton from '../../components/CastButton';
+import { CastButton } from '../../../components/domains/videos/CastButton';
 
 export default function VideoCastScreen() {
   return (
@@ -7,15 +7,7 @@ export default function VideoCastScreen() {
       <Text style={styles.title}>Écran de diffusion vidéo 🎥</Text>
 
       {/* Bouton Cast toujours visible, utilisant une source de test */}
-      <CastButton
-        getCurrentMedia={() => ({
-          url: 'https://example.com/video.mp4',
-          contentType: 'video/mp4',
-          title: 'Airwear Promo',
-          imageUrl: 'https://example.com/thumbnail.jpg',
-          position: 0,
-        })}
-      />
+      <CastButton />
     </View>
   );
 }

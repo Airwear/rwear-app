@@ -25,7 +25,7 @@ class ApiService {
       async (config) => {
         const token = await AsyncStorage.getItem('auth_token');
         if (token) {
-          config.headers.Authorization = Bearer ;
+          config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },

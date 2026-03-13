@@ -25,32 +25,22 @@ function applyPatch() {
 
   const src = fs.readFileSync(target, 'utf8')
 
-  const unsafeSnippet = /val jsContext = reactApplicationContext\.javaScriptContextHolder\s*[\r\n]+\s*decorateRuntime\(jsContext\.get\(\)\)/m
-  const safeSnippet = `val jsContext = reactApplicationContext.javaScriptContextHolder\n      // javaScriptContextHolder is nullable on some RN versions/configurations.\n      // Use a safe call and only call native decorateRuntime when we have a non-null pointer.\n      val jsiPtr = jsContext?.get()\n      if (jsiPtr != null) {\n        decorateRuntime(jsiPtr)\n        true\n      } else {\n        // If no JS context is available, skip JSI bindings installation.\n        Log.w("[RNGestureHandler]", "JS context not available, skipping JSI bindings installation.")\n        false\n      }`
+  const unsafeCall = 'decorateRuntime(jsContext.get())'
+  const safeCall = 'jsContext?.get()?.let { decorateRuntime(it) } ?: Log.w("[RNGestureHandler]", "JS context not available, skipping JSI bindings installation.")'
 
-  if (unsafeSnippet.test(src)) {
-    const patched = src.replace(unsafeSnippet, safeSnippet)
+  if (src.includes(unsafeCall)) {
+    const patched = src.replace(unsafeCall, safeCall)
     fs.writeFileSync(target, patched, 'utf8')
-    console.log('[patch-gesture-handler] Applied safe-call patch to RNGestureHandlerModule.kt')
-  } else if (src.includes('JS context not available, skipping JSI bindings installation.')) {
-    console.log('[patch-gesture-handler] Patch already applied (marker found)')
-  } else {
-    // More tolerant replacement in case file differs slightly
-    const fallbackOld = 'val jsContext = reactApplicationContext.javaScriptContextHolder'
-    if (src.includes(fallbackOld) && !src.includes('decorateRuntime(jsContext.get())')) {
-      console.log('[patch-gesture-handler] Looks like file already changed; no action taken')
-      return
-    }
-    if (src.includes(fallbackOld)) {
-      const replaced = src.replace(fallbackOld, `val jsContext = reactApplicationContext.javaScriptContextHolder\n      // javaScriptContextHolder is nullable on some RN versions/configurations.\n      // Use a safe call and only call native decorateRuntime when we have a non-null pointer.\n      val jsiPtr = jsContext?.get()\n      if (jsiPtr != null) {\n        decorateRuntime(jsiPtr)\n        true\n      } else {\n        // If no JS context is available, skip JSI bindings installation.\n        Log.w("[RNGestureHandler]", "JS context not available, skipping JSI bindings installation.")\n        false\n      }`)
-      if (replaced !== src) {
-        fs.writeFileSync(target, replaced, 'utf8')
-        console.log('[patch-gesture-handler] Applied fallback safe-call patch')
-      }
-    } else {
-      console.log('[patch-gesture-handler] Could not find expected snippet to patch; please inspect', target)
-    }
+    console.log('[patch-gesture-handler] Replaced unsafe decorateRuntime call with nullable-safe call')
+    return
   }
+
+  if (src.includes(safeCall) || src.includes('JS context not available, skipping JSI bindings installation.')) {
+    console.log('[patch-gesture-handler] Patch already applied')
+    return
+  }
+
+  console.log('[patch-gesture-handler] Could not find expected snippet to patch; please inspect', target)
 }
 
 try {

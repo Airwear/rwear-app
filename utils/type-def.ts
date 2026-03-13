@@ -26,6 +26,7 @@ export type AuthContextType = {
     signIn(email: string, password: string): Promise<any>;
     register(email: string, login: string, password: string, fbm_token?: string): Promise<any>;
     update(data : AuthDataType): Promise<any>;
+    deleteAccount?: () => Promise<void>;
     signOut(): void;
 }
 
