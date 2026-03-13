@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Video, ResizeMode, VideoReadyForDisplayEvent, AVPlaybackStatus } from 'expo-av';
 import GoogleCast, { CastButton, CastState, useRemoteMediaClient } from 'react-native-google-cast';
 import { Ionicons } from '@expo/vector-icons';
 import Loader from "@/components/Loader";
@@ -20,13 +20,13 @@ export default function VideoCast({ video }: VideoCastProps) {
   const [castState, setCastState] = useState<CastState>(CastState.NOT_CONNECTED);
   const [isCasting, setIsCasting] = useState(false);
   const client = useRemoteMediaClient();
-  const videoRef = useRef(null);
-  const [status, setStatus] = useState({});
+  const videoRef = useRef<Video | null>(null);
+  const [status, setStatus] = useState<AVPlaybackStatus | null>(null);
   const [ready, isReady] = useState(false);
 
   useEffect(() => {
     // Initialize Google Cast
-    GoogleCast.EventEmitter.addListener(GoogleCast.CAST_STATE_CHANGED, (state) => {
+    GoogleCast.EventEmitter.addListener(GoogleCast.CAST_STATE_CHANGED, (state: any) => {
       console.log('Cast state changed:', state);
       setCastState(state.castState);
     });
@@ -55,7 +55,7 @@ export default function VideoCast({ video }: VideoCastProps) {
 
       // Get current position if video was playing
       let position = 0;
-      if (status.isLoaded && status.positionMillis) {
+      if (status && status.isLoaded && status.positionMillis) {
         position = status.positionMillis / 1000; // Convert to seconds
       }
 
@@ -121,11 +121,11 @@ export default function VideoCast({ video }: VideoCastProps) {
     }
   };
 
-  const _onReadyForDisplay = (event) => {
+  const _onReadyForDisplay = (event: VideoReadyForDisplayEvent) => {
     isReady(Boolean(event?.status?.isLoaded));
   };
 
-  const _onPlaybackStatusUpdate = (playbackStatus) => {
+  const _onPlaybackStatusUpdate = (playbackStatus: AVPlaybackStatus) => {
     setStatus(playbackStatus);
   };
 

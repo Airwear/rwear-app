@@ -1,16 +1,12 @@
-import { View, Pressable, StyleSheet, Text, Image } from "react-native";
+import { View, StyleSheet, Text, Image } from "react-native";
 import { VideoRawType } from "@/utils/type-def";
 import Colors from "@/constants/Colors";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import Title from "@/components/Title";
 import { ButtonSimple } from "@/components/buttons";
 
 export default function Video(video: VideoRawType) {
-
-    const onSelect = (data: VideoRawType) => {
-        
-    }
     return (
         <View style={styles.container}>
             <View style={styles.cover}>
@@ -18,11 +14,11 @@ export default function Video(video: VideoRawType) {
             </View>
             <Details {...video} />
             <View style={styles.titleContainer}>
-                <Title size={20} text={video.designation.toUpperCase()} weight="bold" push={4} />
-                <Text style={styles.label}>Coach : {video.coach_name}</Text>
-                <Text style={styles.label}>Niveau : {video.level_name}</Text>
-                <Text style={styles.label}>Matériels : {video.materiel_list}</Text>
-                <View style={{height: 4}} />
+                <Title size={21} text={video.designation.toUpperCase()} weight="bold" push={4} />
+                <Text style={styles.label}><Text style={styles.labelKey}>Coach :</Text> {video.coach_name}</Text>
+                <Text style={styles.label}><Text style={styles.labelKey}>Niveau :</Text> {video.level_name}</Text>
+                <Text style={styles.label}><Text style={styles.labelKey}>Matériels :</Text> {video.materiel_list}</Text>
+                <View style={styles.spaceXs} />
                 <Text style={styles.description}>{video.description}</Text>
             </View>
             <RenderLink {...video} />
@@ -72,25 +68,31 @@ const RenderLink = (item: VideoRawType) => (
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        backgroundColor: Colors.white,
     },
 
     detailsContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        height: 80,
+        minHeight: 84,
         alignItems: 'center',
+        borderTopWidth: 1,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.muted
-        //backgroundColor: '#f1f1f1'
+        borderColor: '#eceef2',
+        backgroundColor: '#fcfcfd',
     },
 
     titleContainer: {
-        padding: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
     },
 
     cover: {
-        height: 150,
+        height: 180,
+        borderRadius: 14,
+        overflow: 'hidden',
+        marginBottom: 10,
     },
 
     detailsItem: {
@@ -99,21 +101,28 @@ const styles = StyleSheet.create({
     },
 
     description: {
-        color: Colors.black,
-        fontSize: 15,
-        marginBottom: 2
+        color: Colors.darkColor,
+        fontSize: 14,
+        marginBottom: 2,
+        lineHeight: 20,
     },
 
     
     details: {
-        fontSize: 14,
+        fontSize: 13,
         marginTop: 5,
-        fontWeight: 'bold'
+        fontWeight: '600',
+        color: Colors.darkColor,
     },
 
     label: {
         fontSize: 13,
-        marginBottom: 5
+        marginBottom: 5,
+        color: Colors.darkColor,
+    },
+
+    labelKey: {
+        fontWeight: '700',
     },
 
     coach: {
@@ -121,7 +130,9 @@ const styles = StyleSheet.create({
     },
 
     renderItem: {
-        padding: 10,
+        paddingHorizontal: 12,
+        paddingBottom: 16,
+        paddingTop: 6,
     },
 
     separator: {
@@ -133,5 +144,9 @@ const styles = StyleSheet.create({
     image: {
         flex: 1,
         resizeMode: 'cover',
+    },
+
+    spaceXs: {
+        height: 4,
     },
 })

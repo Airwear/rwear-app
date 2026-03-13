@@ -1,5 +1,5 @@
 import Colors from "@/constants/Colors";
-import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
+import { Text, StyleSheet, View, Pressable } from "react-native";
 import { Indicator } from "../Loader";
 import { FontAwesome } from "@expo/vector-icons";
 
@@ -11,6 +11,7 @@ type ButtonType = {
     onPress?: () => void;
     showIndicator?: boolean
     iconName?: any
+    disabled?: boolean
 }
 
 export default function ButtonSimple(
@@ -20,17 +21,25 @@ export default function ButtonSimple(
         textColor = '#fff', 
         text, 
         onPress,
-        showIndicator = false
+        showIndicator = false,
+        disabled = false
     }
     : ButtonType) 
     {
     return (
-        <View style={[styles.content, {backgroundColor: color, width: width}]}>
+        <View style={[styles.content, {backgroundColor: color, width: width, opacity: disabled ? 0.65 : 1}]}>
             {showIndicator && <Indicator />}
             {! showIndicator && (
-                <TouchableOpacity style={styles.button} onPress={onPress}>
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.button,
+                        pressed && styles.buttonPressed,
+                    ]}
+                    onPress={onPress}
+                    disabled={disabled}
+                >
                     <Text style={[styles.buttonLabel, {color: textColor}]}>{text}</Text>
-                </TouchableOpacity>
+                </Pressable>
             )}
         </View>
     );
@@ -49,7 +58,15 @@ export  function ButtonWithIcon(
 ) {
     return (
         <View>
-            <TouchableOpacity disabled={showIndicator} style={[styles.button, {backgroundColor: color, flexDirection: 'row'}]} onPress={onPress}>
+            <Pressable
+                disabled={showIndicator}
+                style={({ pressed }) => [
+                    styles.button,
+                    { backgroundColor: color, flexDirection: 'row' },
+                    pressed && styles.buttonPressed,
+                ]}
+                onPress={onPress}
+            >
                 <FontAwesome
                     name={iconName}
                     size={22}
@@ -58,7 +75,7 @@ export  function ButtonWithIcon(
                 />
                 <Text style={styles.buttonLabel}>{text}</Text>
                 {showIndicator && <Indicator color="white" />}
-            </TouchableOpacity>
+            </Pressable>
         </View>
     )
 }
@@ -67,18 +84,28 @@ const styles = StyleSheet.create({
 
     content: {
         backgroundColor: Colors.black,
-        height: 55,
+        minHeight: 54,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 50,
+        borderRadius: 14,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        elevation: 2,
     },
     
     button: {
         width: '100%',
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 50,
-        height: 55,
+        borderRadius: 14,
+        minHeight: 54,
+    },
+
+    buttonPressed: {
+        opacity: 0.92,
+        transform: [{ scale: 0.99 }],
     },
 
     buttonIcon: {
@@ -86,10 +113,9 @@ const styles = StyleSheet.create({
     },
 
     buttonLabel: {
-        color: '#fff',
-        fontSize: 13,
-        fontWeight: 'bold',
-        textTransform: 'uppercase', 
-        marginRight: 5
+        color: Colors.white,
+        fontSize: 14,
+        fontWeight: '700',
+        marginRight: 0,
     },
 });

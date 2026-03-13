@@ -219,10 +219,11 @@ const styles = StyleSheet.create({
 
   contentContainer: {
     flex: 1,
-    padding: 10,
+    padding: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 50,
+    paddingHorizontal: 0,
+    backgroundColor: '#000',
   },
 
   video: {
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     borderRadius: 28,
     zIndex: 9999,
     elevation: 1000, // For Android - ensures it's on top
@@ -262,7 +263,13 @@ const styles = StyleSheet.create({
   },
 
   controlsContainer: {
-    padding: 10,
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   
 });

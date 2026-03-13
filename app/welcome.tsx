@@ -1,4 +1,4 @@
-import { StyleSheet, View, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { Text } from '@/components/Themed';
 import { FlexContainer, ImageViewer } from '@/components';
@@ -26,29 +26,29 @@ export default function WelcomeScreen() {
 
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.title}>Bienvenue sur AIRWEAR</Text>
-          <Text style={styles.subtitle}>Votre application de sport et bien-être</Text>
-          <Text style={styles.description}>
-            Transformez votre vie avec des plans d'entraînement personnalisés et un suivi intelligent de votre progression.
-          </Text>
+          <View style={styles.heroCard}>
+            <Text style={styles.title}>Bienvenue sur AIRWEAR</Text>
+            <Text style={styles.subtitle}>Votre application de sport et bien-être</Text>
+            <Text style={styles.description}>
+              Transformez votre vie avec des plans d'entraînement personnalisés et un suivi intelligent de votre progression.
+            </Text>
 
-          <View style={{ height: 40 }} />
+            <View style={styles.spaceLg} />
 
-          <ButtonSimple 
-            text="Se connecter"
-            color={Colors.primary}
-            onPress={goToSignIn}
-          />
+            <ButtonSimple 
+              text="Se connecter"
+              color={Colors.primary}
+              onPress={goToSignIn}
+            />
 
-          <View style={{ height: 16 }} />
+            <View style={styles.spaceSm} />
 
-          <ButtonSimple 
-            text="Créer un compte"
-            color={Colors.danger}
-            onPress={goToRegister}
-          />
-
-          <View style={{ height: 50 }} />
+            <ButtonSimple 
+              text="Créer un compte"
+              color={Colors.danger}
+              onPress={goToRegister}
+            />
+          </View>
 
           <View style={styles.featuresContainer}>
             <View style={styles.featureItem}>
@@ -73,40 +73,48 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
+    paddingTop: 12,
+  },
+  heroCard: {
+    width: '100%',
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: '#eceef2',
   },
   content: {
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 40,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.muted,
-    marginBottom: 8,
+    fontSize: 26,
+    fontWeight: '700',
+    color: Colors.darkColor,
+    marginBottom: 6,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.muted,
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   description: {
     fontSize: 14,
     color: Colors.muted,
-    opacity: 0.7,
     textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 21,
+    marginBottom: 4,
+    lineHeight: 20,
   },
   featuresContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 60,
-    paddingTop: 24,
+    marginTop: 16,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
     width: '100%',
@@ -122,7 +130,12 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: 12,
     color: Colors.muted,
-    opacity: 0.7,
     textAlign: 'center',
+  },
+  spaceLg: {
+    height: 24,
+  },
+  spaceSm: {
+    height: 10,
   },
 });

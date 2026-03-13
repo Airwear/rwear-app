@@ -15,12 +15,17 @@ const NotFound = () => {
 const styles = StyleSheet.create({
   content: {
     marginTop: 16,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    paddingVertical: 22,
+    paddingHorizontal: 18,
+    borderRadius: 14,
   },
   text: {
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.muted,
-    fontStyle: 'italic'
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 });
 

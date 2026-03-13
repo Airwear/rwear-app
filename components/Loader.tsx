@@ -9,7 +9,7 @@ const Loader = ({ visible }: {visible: boolean}) => {
 
   return (
     <View style={styles.loader}>
-      <ActivityIndicator size="large" color={Colors.danger} />
+      <ActivityIndicator size="large" color={Colors.primary} />
     </View>
   );
 };
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
 
   indicator: {

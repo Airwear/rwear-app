@@ -7,7 +7,7 @@ import { Text, View, TextInput, StyleSheet, TouchableOpacity } from "react-nativ
 export default function Input({value, onChangeText, label, placeholder, error, secureTextEntry = false, keyboardType = 'default', required = false}: InputType) {
     return (
         <View style={styles.container}>
-            <View style={{flexDirection: 'row'}}>
+            <View style={styles.labelRow}>
                 <Text style={styles.label}>{label}</Text>
                 {required && <Text style={styles.required}>*</Text>}
             </View>
@@ -32,7 +32,7 @@ export function InputPassword({value, onChangeText, label, placeholder, error, s
 
     return (
         <View style={styles.container}>
-            <View style={{flexDirection: 'row'}}>
+            <View style={styles.labelRow}>
                 <Text style={styles.label}>{label}</Text>
                 {required && <Text style={styles.required}>*</Text>}
             </View>
@@ -66,7 +66,7 @@ export function InputWithIcon({value, onChangeText, label, info, error, secureTe
         <View>
             <View style={styles.containerWithIcon}>
                 
-                <View style={{flexDirection: 'row', width: 30}}>
+                <View style={styles.iconWrapper}>
                     <FontAwesome color={Colors.primary} name={iconName} size={25} />
                 </View>
 
@@ -88,10 +88,14 @@ export function InputWithIcon({value, onChangeText, label, info, error, secureTe
 const styles = StyleSheet.create({
 
     container: {
-        height: 90,
+        minHeight: 86,
         padding: 4,
-        //marginBottom: 10,
-        //backgroundColor: '#f1f1f1'
+        marginBottom: 4,
+    },
+
+
+    labelRow: {
+        flexDirection: 'row',
     },
 
 
@@ -99,12 +103,19 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 16,
-        height: 60,
-        backgroundColor: '#f0f1f1',
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        minHeight: 54,
+        backgroundColor: '#fcfcfd',
+        borderWidth: 1,
+        borderColor: '#e2e5ea',
         marginBottom: 2,
-        borderRadius: 7,
+        borderRadius: 12,
+    },
+
+    iconWrapper: {
+        flexDirection: 'row',
+        width: 30,
     },
 
     containerPassword: {
@@ -114,20 +125,24 @@ const styles = StyleSheet.create({
 
     containerPasswordIcon: {
         width: 50,
-        backgroundColor: '#dee2e6',
+        backgroundColor: '#f0f1f4',
         height: 47,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: -2,
-        borderBottomRightRadius: 5,
-        borderTopRightRadius: 5,
+        borderBottomRightRadius: 12,
+        borderTopRightRadius: 12,
+        borderWidth: 1,
+        borderColor: '#e2e5ea',
+        borderLeftWidth: 0,
     },
 
     label: {
-        fontSize: 10,
-        marginBottom: 2,
+        fontSize: 11,
+        marginBottom: 4,
         color: Colors.muted,
-        textTransform: 'uppercase'
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
 
     required: {
@@ -140,24 +155,26 @@ const styles = StyleSheet.create({
     input: {
         color: Colors.black,
         borderWidth: 1,
-        borderRadius: 5,
-        borderColor: '#dee2e6',
-        padding: 12,
-        fontSize: 19,
+        borderRadius: 12,
+        borderColor: '#e2e5ea',
+        backgroundColor: '#fcfcfd',
+        paddingHorizontal: 12,
+        fontSize: 16,
         marginBottom: 2,
         flex: 1,
         height: 47,
-        //backgroundColor: 'green'
     },
 
     inputWithIcon: {
-        borderColor: '#f0f1f1',
+        borderColor: '#e2e5ea',
         marginBottom: 0,
+        backgroundColor: '#fcfcfd',
     },
 
     error: {
-        fontSize: 13,
-        color: 'red'
+        fontSize: 12,
+        color: Colors.danger,
+        marginTop: 2,
     },
 
     buttonIcon: {

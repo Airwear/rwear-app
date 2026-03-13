@@ -6,6 +6,7 @@ import { CastButton, CastState } from 'react-native-google-cast';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useCasting } from '../hooks/useCasting';
+import Colors from '@/constants/Colors';
 
 export default function VideoCastScreen() {
   const params = useLocalSearchParams();
@@ -31,11 +32,11 @@ export default function VideoCastScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Cast Video' }} />
       <StatusBar style="auto" />
-      <View style={{ flex: 1 }}>
+      <View style={styles.videoContainer}>
         <Video
           ref={videoRef}
           source={{ uri: params.videoUrl as string }}
-          style={{ flex: 1 }}
+          style={styles.videoPlayer}
           resizeMode={ResizeMode.CONTAIN}
           useNativeControls
           shouldPlay={!isCasting}
@@ -46,7 +47,7 @@ export default function VideoCastScreen() {
           importantForAccessibility="yes"
           style={[
             styles.castIcon,
-            I18nManager.isRTL ? { left: 16, right: undefined } : { right: 16 },
+            I18nManager.isRTL ? styles.castIconRtl : styles.castIconLtr,
           ]}
         />
       </View>
@@ -67,7 +68,7 @@ export default function VideoCastScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Démarrer casting Chromecast"
               >
-                <Ionicons name="cast" size={24} color="white" />
+                <Ionicons name={"cast" as any} size={24} color="white" />
                 <Text style={styles.buttonText}>Démarrer le Cast</Text>
               </TouchableOpacity>
             ) : (
@@ -89,19 +90,29 @@ export default function VideoCastScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  castControlsContainer: { padding: 20, alignItems: 'center', minHeight: 180 },
-  castStatus: { fontSize: 16, marginBottom: 20, textAlign: 'center' },
+  container: { flex: 1, backgroundColor: '#0f0f10' },
+  videoContainer: { flex: 1 },
+  videoPlayer: { flex: 1 },
+  castControlsContainer: {
+    padding: 20,
+    alignItems: 'center',
+    minHeight: 190,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    marginTop: -8,
+  },
+  castStatus: { fontSize: 15, marginBottom: 18, textAlign: 'center', color: Colors.darkColor, fontWeight: '600' },
   buttonContainer: { width: '100%', alignItems: 'center' },
   castButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0066cc',
-    paddingVertical: 14,
+    backgroundColor: Colors.primary,
+    paddingVertical: 13,
     paddingHorizontal: 28,
-    borderRadius: 10,
-    marginBottom: 16,
+    borderRadius: 14,
+    marginBottom: 14,
     width: '82%',
     minHeight: 48,
   },
@@ -112,6 +123,15 @@ const styles = StyleSheet.create({
     top: 16,
     width: 40,
     height: 40,
-    tintColor: 'white'
-  }
+    tintColor: 'white',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 20,
+    padding: 8,
+  },
+  castIconRtl: {
+    left: 16,
+  },
+  castIconLtr: {
+    right: 16,
+  },
 });

@@ -13,12 +13,12 @@ export default function UserHeader({userName = ''}: {userName?: string}) {
     <View style={styles.container}>
 
         <View style={styles.header}>
-            <Title text={label.navigation.my_space} size={30} push={5} weight='bold' />
-            <Title text={userName} size={12} push={5} />
+            <Title text={label.navigation.my_space} size={26} push={3} weight='bold' />
+            <Title text={userName} size={12} push={0} color={Colors.muted} />
         </View>
 
         <TouchableOpacity onPress={() => router.navigate('/edit-user')} style={styles.iconContainer}>
-          <FontAwesome name='user-circle' size={35} color={Colors.muted} />
+          <FontAwesome name='user-circle' size={28} color={Colors.darkColor} />
         </TouchableOpacity>
     </View>
   );
@@ -26,23 +26,27 @@ export default function UserHeader({userName = ''}: {userName?: string}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 80,
+    minHeight: 72,
     flexDirection: 'row',
     width: '100%',
-    //backgroundColor: Colors.muted,
-    padding: 4,
-    alignItems: 'center'
+    paddingVertical: 2,
+    paddingHorizontal: 2,
+    alignItems: 'center',
   },
 
   header: {
     flex: 1,
-    //backgroundColor: Colors.muted,
   },
 
   iconContainer: {
-    width: 50,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: Colors.lightColor,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#eceef2',
   },
 
   textBody: {

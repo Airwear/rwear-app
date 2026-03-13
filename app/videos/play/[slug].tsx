@@ -1,12 +1,11 @@
 
-import { FlexContainer, ImageViewer, Indicator, Loader } from '@/components';
-import { useNavigation, useLocalSearchParams, useRouter } from 'expo-router';
+import { FlexContainer, Loader } from '@/components';
+import { useNavigation, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { VideoRawType } from '@/utils/type-def';
 import { _get, _post, apiRoutes } from '@/services/api';
 import Colors from '@/constants/Colors';
-import { StyleSheet,} from 'react-native';
-import { Player } from '@/components/domains/videos';
+import { StyleSheet, View } from 'react-native';
 import { useAuth } from '@/contexts/authContext';
 import Player1 from '@/components/domains/videos/Player1';
 
@@ -75,8 +74,10 @@ export default function VideoPlayerScreen() {
   }
 
   return (
-    <FlexContainer color={Colors.white}>
-      <Player1 {...video} />
+    <FlexContainer color={Colors.black}>
+      <View style={styles.playerContainer}>
+        <Player1 {...video} />
+      </View>
     </FlexContainer>
   );
 }
@@ -85,6 +86,15 @@ const styles = StyleSheet.create({
 
   container: {
       flex: 1,
+  },
+
+  playerContainer: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: Colors.black,
+    borderWidth: 1,
+    borderColor: '#23262b',
   },
 
   pressable : {

@@ -1,9 +1,9 @@
-import { BadgeIcon, FlexContainer, UserHeader } from '@/components';
-import { ScrollView, RefreshControl, StyleSheet, View,} from 'react-native';
+import { FlexContainer, UserHeader } from '@/components';
+import { StyleSheet, View, Text } from 'react-native';
+import Colors from '@/constants/Colors';
 
-import { useEffect, useCallback, useState } from 'react';
-import { router, useFocusEffect } from 'expo-router';
-import { _get, } from '@/services/api';
+import { useEffect, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@/contexts/authContext';
 import { useApp } from '@/contexts/appContext';
 import { VideoTypeList } from '@/components/domains/videos';
@@ -13,22 +13,10 @@ import { CastButton } from 'react-native-google-cast';
 export default function IndexScreen({navigation}: any) {
 
   const {authData} = useAuth();
-  const {label} = useApp()
-  const [loading, isLoading] = useState<boolean>(false);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const {label} = useApp();
   const controller = new AbortController();
 
 
-  const onRefresh = useCallback(() => {
-    
-    setRefreshing(true);
-    console.log('refreshing@false')
-
-    setTimeout(() => setRefreshing(false), 1000)
-
-  }, []);
-
-  
   useFocusEffect(useCallback(() => {
     console.log('onFocus')
     return () => {}
@@ -42,38 +30,71 @@ export default function IndexScreen({navigation}: any) {
     <FlexContainer push>
 
       <View style={styles.headerContainer}>
-        <UserHeader userName={authData?.username?.toLocaleUpperCase()} />
-        <CastButton
-          style={styles.castButton}
-          tintColor="#000000"
-        />
+        <View style={styles.headerTopRow}>
+          <View style={styles.userInfo}>
+            <Text style={styles.welcomeText}>{label?.navigation?.home || 'Accueil'}</Text>
+            <UserHeader userName={authData?.username?.toLocaleUpperCase()} />
+          </View>
+          <View style={styles.castButtonContainer}>
+            <CastButton
+              style={styles.castButton}
+              tintColor={Colors.black}
+            />
+          </View>
+        </View>
       </View>
 
-      <VideoTypeList />
-      
-      <ScrollView 
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }>
-        
-      </ScrollView>
+      <View style={styles.contentContainer}>
+        <VideoTypeList />
+      </View>
     </FlexContainer>
   );
 }
 
 const styles = StyleSheet.create({
   headerContainer: {
-    alignItems: 'center',
-    paddingVertical: 12,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#eceef2',
   },
-  scrollView: {
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  userInfo: {
     flex: 1,
   },
+  welcomeText: {
+    fontSize: 13,
+    color: Colors.muted,
+    marginBottom: 4,
+  },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#eceef2',
+    paddingTop: 6,
+  },
+  castButtonContainer: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#eceef2',
+  },
   castButton: {
-    marginTop: 8,
-    width: 48,
-    height: 48,
-    tintColor: '#000000',
+    width: 26,
+    height: 26,
+    tintColor: Colors.black,
   },
 });

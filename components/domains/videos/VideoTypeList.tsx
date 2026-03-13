@@ -1,4 +1,4 @@
-import { View, FlatList, TouchableOpacity, Pressable, StyleSheet, Text, ImageBackground } from "react-native";
+import { View, FlatList, Pressable, StyleSheet, Text, ImageBackground } from "react-native";
 import { VideoType } from "@/utils/type-def";
 import Colors from "@/constants/Colors";
 import { Link } from "expo-router";
@@ -26,7 +26,7 @@ export default function VideoTypeList() {
 
     }, [])
 
-    const renderItem = ({ item, index }: any) => (
+    const renderItem = ({ item }: any) => (
         <Link
             href={{
                 pathname: '/videos/[type]',
@@ -34,16 +34,17 @@ export default function VideoTypeList() {
             }}
             asChild
         >
-            <Pressable style={styles.renderItem}>
-                <View style={styles.description}>
+            <Pressable style={({ pressed }) => [styles.renderItem, pressed && styles.renderItemPressed]}>
+                <View style={styles.headerBlock}>
                     <Text style={[styles.title]}>{item.designation}</Text>
+                    <Text style={styles.subtitle}>Découvrir les séances</Text>
                 </View>
-                <ImageBackground source={{uri: item.image}} style={[styles.image, {backgroundColor: '#000'}]}>
-                    
+                <ImageBackground source={{uri: item.image}} style={[styles.image, {backgroundColor: Colors.black}]}>
+                    <View style={styles.imageOverlay} />
                 </ImageBackground>
                 {item.info !== undefined && (
                     <View style={styles.description}>
-                        <Text>{item.info}</Text>
+                        <Text style={styles.infoText} numberOfLines={2}>{item.info}</Text>
                     </View>
                 )}
             
@@ -63,13 +64,15 @@ export default function VideoTypeList() {
 
     return (
         <View style={styles.container}>
-            <Title text={title} size={18} push={2} />
+            <Title text={title} size={20} weight="bold" push={2} />
             <Text style={styles.text}>Choisissez la catégorie de votre choix pour vos entrainements vidéos.</Text>
             <FlatList
                 data={list}
                 keyExtractor={(item:any) => item.id}
                 renderItem={renderItem}
                 ItemSeparatorComponent={separator}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContainer}
             />
         </View>
     )
@@ -77,43 +80,76 @@ export default function VideoTypeList() {
 
 const styles = StyleSheet.create({
     container: {
-        paddingBottom: 150
+        paddingHorizontal: 10,
+        paddingBottom: 140,
+    },
+
+    listContainer: {
+        paddingBottom: 20,
     },
 
     text: {
-        marginBottom: 10,
+        marginBottom: 12,
+        color: Colors.muted,
+        fontSize: 13,
     },
 
     description: {
-        color: Colors.muted,
-        fontSize: 15,
-        padding: 5
+        paddingHorizontal: 10,
+        paddingBottom: 10,
+    },
+
+    headerBlock: {
+        paddingHorizontal: 10,
+        paddingTop: 10,
+        paddingBottom: 6,
     },
 
     title: {
-        fontSize: 14,
-        marginBottom: 5,
-        //color: Colors.white,
+        fontSize: 15,
+        marginBottom: 2,
         fontWeight: 'bold',
+        color: Colors.black,
+    },
+
+    subtitle: {
+        fontSize: 12,
+        color: Colors.muted,
+    },
+
+    infoText: {
+        color: Colors.darkColor,
+        fontSize: 13,
     },
 
     renderItem: {
-        backgroundColor: Colors.lightColor,
-        //justifyContent: 'center',
-        height: 150,
-        borderRadius: 10,
-        marginBottom: 10
+        backgroundColor: Colors.white,
+        height: 170,
+        borderRadius: 14,
+        marginBottom: 10,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#eceef2',
+    },
+
+    renderItemPressed: {
+        opacity: 0.92,
+        transform: [{ scale: 0.995 }],
     },
 
     separator: {
-        backgroundColor: Colors.white,
-        width: 2,
+        height: 2,
     },
 
     image: {
         flex: 1,
         resizeMode: 'cover',
-        padding: 10,
+    },
+
+    imageOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: Colors.black,
+        opacity: 0.15,
     },
 
     

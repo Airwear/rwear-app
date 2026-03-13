@@ -2,11 +2,10 @@ import { View, FlatList, Pressable, StyleSheet, Text, Image } from "react-native
 import { VideoRawType } from "@/utils/type-def";
 import Colors from "@/constants/Colors";
 import { Link } from "expo-router";
-import axios from "axios";
 
 export default function VideoList({list} : {list: VideoRawType[]}) {
 
-    const renderItem = ({ item, index }: any) => (
+    const renderItem = ({ item }: any) => (
         <Link
             href={{
                 pathname: '/videos/play/[slug]',
@@ -17,7 +16,7 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
             asChild
             push
         >
-            <Pressable style={styles.renderItem}>
+            <Pressable style={({ pressed }) => [styles.renderItem, pressed && styles.renderItemPressed]}>
                 <Image style={styles.image} source={{uri: item.cover}} />
                 <View style={styles.textContainer}>
                     <Text style={styles.title}>{item.designation}</Text>
@@ -37,17 +36,27 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
                 keyExtractor={(item:any) => item.id}
                 renderItem={renderItem}
                 ItemSeparatorComponent={separator}
+                contentContainerStyle={styles.listContainer}
+                showsVerticalScrollIndicator={false}
             />
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {},
+    container: {
+        paddingHorizontal: 10,
+    },
+
+    listContainer: {
+        paddingBottom: 24,
+    },
 
     textContainer: {
-        padding: 10,
-        justifyContent: 'center'
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        justifyContent: 'center',
+        flex: 1,
     },
 
     description: {
@@ -57,38 +66,46 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 15,
-        marginBottom: 5,
+        fontSize: 14,
+        marginBottom: 4,
         fontWeight: 'bold',
-        textTransform: 'uppercase'
+        textTransform: 'uppercase',
+        color: Colors.black,
     },
 
     details: {
-        fontSize: 14,
-        marginBottom: 4
+        fontSize: 13,
+        marginBottom: 3,
+        color: Colors.darkColor,
     },
 
     coach: {
         fontSize: 13,
+        color: Colors.muted,
     },
 
     renderItem: {
-        backgroundColor: Colors.lightColor,
-        //justifyContent: 'center',
-        height: 90,
+        backgroundColor: '#ffffff',
+        minHeight: 94,
         flexDirection: 'row',
-        
+        borderRadius: 14,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#eceef2',
+    },
+
+    renderItemPressed: {
+        opacity: 0.92,
+        transform: [{ scale: 0.995 }],
     },
 
     separator: {
-        backgroundColor: Colors.white,
-        height: 4,
+        height: 8,
         width: '100%'
     },
 
     image: {
-        width: 100,
-        resizeMode: 'center',
-        borderRadius: 2,
+        width: 110,
+        resizeMode: 'cover',
     },
 })

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, ScrollView, View, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, ScrollView, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { FlexContainer, ImageViewer, Form, AppPolicy } from '@/components';
@@ -78,26 +78,40 @@ export default function RegistrationScreen() {
       />
 
       <View style={styles.container}>
-        <ScrollView>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.headerCard}>
+            <Text style={styles.title}>Créer votre compte</Text>
+            <Text style={styles.subtitle}>Renseignez vos informations pour personnaliser vos séances</Text>
+          </View>
+
           {(authError.length > 0 || localError.length > 0) && (
-            <Text style={styles.error}>{authError || localError}</Text>
+            <View style={styles.errorCard}>
+              <Text style={styles.error}>{authError || localError}</Text>
+            </View>
           )}
 
+          <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Identification</Text>
           <Form.Input label="Nom" placeholder="Nom" value={name} onChangeText={setName} error={undefined} />
           <Form.Input label="Adresse mail" placeholder="Adresse mail" value={email} onChangeText={setEmail} error={undefined} keyboardType="default" />
           <Form.Input label="Pseudo" placeholder="Pseudo" value={username} onChangeText={setUsername} error={undefined} />
           <Form.Input label="Date de naissance" placeholder="JJ/MM/AAAA" value={birthDate} onChangeText={setBirthDate} error={undefined} />
           <Form.Input label="Tel (WhatsApp)" placeholder="Téléphone" value={phone} onChangeText={setPhone} error={undefined} keyboardType="phone-pad" />
+          </View>
 
+          <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Localisation</Text>
           <Form.Input label="Pays" placeholder="Pays" value={country} onChangeText={setCountry} error={undefined} />
           <Form.Input label="Ville" placeholder="Ville" value={city} onChangeText={setCity} error={undefined} />
+          </View>
 
+          <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Données corporelles</Text>
           <Form.Input label="Poids (kg)" placeholder="Poids" value={weight} onChangeText={setWeight} error={undefined} keyboardType="numeric" />
           <Form.Input label="Taille (cm)" placeholder="Taille" value={height} onChangeText={setHeight} error={undefined} keyboardType="numeric" />
+          </View>
 
+          <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Objectif</Text>
           <Dropdown 
             data={goalOptions.map((opt: string) => ({ key: opt, value: opt }))}
@@ -120,11 +134,13 @@ export default function RegistrationScreen() {
               error={undefined}
             />
           )}
+          </View>
 
+          <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Sécurité</Text>
           <Form.InputPassword label="Mot de passe" placeholder="Mot de passe" value={password} onChangeText={setPassword} error={undefined} secureTextEntry />
 
-          <View style={{ height: 10 }} />
+          <View style={styles.spaceSm} />
 
           <ButtonSimple 
             text="S'inscrire"
@@ -133,7 +149,7 @@ export default function RegistrationScreen() {
             showIndicator={registering}
           />
 
-          <View style={{ height: 10 }} />
+          <View style={styles.spaceSm} />
 
           <ButtonSimple 
             text="Déjà un compte ? Se connecter"
@@ -143,6 +159,7 @@ export default function RegistrationScreen() {
           />
 
           <AppPolicy />
+          </View>
         </ScrollView>
       </View>
     </FlexContainer>
@@ -152,11 +169,50 @@ export default function RegistrationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
+    paddingTop: 8,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  headerCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#eceef2',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.darkColor,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: Colors.muted,
+    marginTop: 4,
+  },
+  sectionCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingTop: 6,
+    paddingBottom: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#eceef2',
+  },
+  errorCard: {
+    backgroundColor: '#fdeaea',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 10,
   },
   error: { 
     color: Colors.danger, 
-    marginBottom: 15, 
     textAlign: 'center',
     fontSize: 15 
   },
@@ -193,5 +249,8 @@ const styles = StyleSheet.create({
   optionTextSelected: { 
     color: '#fff', 
     fontWeight: '600' 
-  }
+  },
+  spaceSm: {
+    height: 10,
+  },
 });

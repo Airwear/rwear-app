@@ -170,8 +170,7 @@ export default function Player(video: VideoRawType) {
                     style={styles.video}
                     ref={player}
                     source={{
-                        uri: video.url,
-                        mimeType: 'video/mp4'
+                        uri: video.url
                     }}
                     useNativeControls
                     resizeMode={ResizeMode.CONTAIN}

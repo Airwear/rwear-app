@@ -1,16 +1,13 @@
-import { StyleSheet,} from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { FlexContainer, NotFound, } from '@/components';
 import { useNavigation } from 'expo-router';
 import { useEffect, } from 'react';
 import Colors from '@/constants/Colors';
-import {useAuth} from '@/hooks';
-import { useApp } from '@/contexts/appContext';
+import { FontAwesome } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
 
   const navigation = useNavigation();
-  const {label} = useApp();
-  const { authData } = useAuth();
 
   useEffect(() => {
     navigation.setOptions({ 
@@ -20,6 +17,13 @@ export default function RegisterScreen() {
 
   return (
     <FlexContainer color={Colors.white} push>
+      <View style={styles.heroCard}>
+        <View style={styles.headerRow}>
+          <FontAwesome name="calendar" size={18} color={Colors.darkColor} />
+          <Text style={styles.title}>Planning</Text>
+        </View>
+        <Text style={styles.subtitle}>Organisez vos entraînements à venir</Text>
+      </View>
       <NotFound />
     </FlexContainer>
   );
@@ -27,27 +31,31 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
 
-  container: {
-    flex: 1,
-    paddingTop: 16,
-    //justifyContent: 'center'
+  heroCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#eceef2',
   },
 
-  imageContainer: {
+  headerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
 
   title: {
+    color: Colors.darkColor,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+
+  subtitle: {
     color: Colors.muted,
-    fontSize: 17
-  },
-
-  new: {
-    fontWeight: 'bold',
-    color: Colors.green
-  },
-
-  buttonAction: {
-    padding: 4
-  },
+    fontSize: 13,
+    marginTop: 4,
+  }
 });

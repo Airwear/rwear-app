@@ -1,5 +1,5 @@
 import { Text,  StyleSheet, View, ScrollView} from 'react-native';
-import { AppPolicy, FlexContainer, ForgetPasswordLink, Form, ImageViewer, Loader, Title, } from '@/components';
+import { AppPolicy, FlexContainer, Form, ImageViewer, Title, } from '@/components';
 import { useNavigation, router  } from 'expo-router';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -80,10 +80,17 @@ export default function IndexScreen() {
 
       <View style={styles.container}>
 
-        <ScrollView>
+        <ScrollView contentContainerStyle={styles.content}>
 
-            {error.length > 0 && <Title text={error} color={Colors.danger} size={15} />}
-            {info.length > 0 && <Title text={info} color={Colors.primary} size={14} />}
+            <View style={styles.headerCard}>
+              <Text style={styles.title}>Connexion</Text>
+              <Text style={styles.subtitle}>Accédez à vos entraînements et suivez votre progression</Text>
+            </View>
+
+            {error.length > 0 && <View style={styles.errorCard}><Title text={error} color={Colors.danger} size={15} /></View>}
+            {info.length > 0 && <View style={styles.infoCard}><Title text={info} color={Colors.primary} size={14} /></View>}
+
+            <View style={styles.formCard}>
 
             <Form.Input 
               label={label.user.email} 
@@ -102,7 +109,7 @@ export default function IndexScreen() {
               secureTextEntry
             />
             
-            <View style={{height: 10}} />
+            <View style={styles.spaceSm} />
 
             <ButtonSimple 
               text={label.action.login}
@@ -112,7 +119,7 @@ export default function IndexScreen() {
               disabled={loading}
             />
 
-            <View style={{height: 20}} />
+            <View style={styles.spaceMd} />
 
             <ButtonSimple 
               text={label.action.new_account}
@@ -122,6 +129,7 @@ export default function IndexScreen() {
             />
 
            <AppPolicy />
+           </View>
         </ScrollView>
       
       </View>
@@ -133,7 +141,60 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    paddingTop: 16,
+    paddingTop: 8,
+  },
+
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 30,
+  },
+
+  headerCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#eceef2',
+  },
+
+  formCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#eceef2',
+  },
+
+  title: {
+    color: Colors.darkColor,
+    fontSize: 22,
+    fontWeight: '700',
+  },
+
+  subtitle: {
+    color: Colors.muted,
+    fontSize: 13,
+    marginTop: 4,
+    lineHeight: 18,
+  },
+
+  errorCard: {
+    backgroundColor: '#fdeaea',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+
+  infoCard: {
+    backgroundColor: '#eef7ff',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 10,
   },
 
   imageContainer: {
@@ -141,17 +202,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  title: {
-    color: Colors.muted,
-    fontSize: 17
+  spaceSm: {
+    height: 10,
   },
 
-  new: {
-    fontWeight: 'bold',
-    color: Colors.green
-  },
-
-  buttonAction: {
-    padding: 4
+  spaceMd: {
+    height: 18,
   },
 });

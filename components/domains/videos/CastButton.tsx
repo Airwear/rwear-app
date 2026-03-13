@@ -8,5 +8,5 @@ interface CastButtonProps {
 }
 
 export const CastButton: React.FC<CastButtonProps> = ({ style, tintColor = '#FFFFFF' }) => {
-  return <GoogleCastButton style={[{ width: 24, height: 24, tintColor }, style]} />;
+  return <GoogleCastButton style={[{ width: 24, height: 24 }, style]} tintColor={tintColor} />;
 };

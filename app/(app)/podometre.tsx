@@ -1,18 +1,17 @@
 import { FlexContainer, ImageViewer, Title} from '@/components';
 import Colors from '@/constants/Colors';
 import { useEffect, useState } from 'react';
-import { _get, } from '@/services/api';
 import { Pedometer } from 'expo-sensors';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { icons } from '@/utils';
 import { Platform } from 'react-native';
 
 export default function TabPodometreScreen() {
 
   const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking');
-  const [pastStepCount, setPastStepCount] = useState(0);
+  const [, setPastStepCount] = useState(0);
   const [currentStepCount, setCurrentStepCount] = useState(0);
-  const [hasError, setHasError] = useState(false);
+  const [, setHasError] = useState(false);
 
   const stepLast24h = 'Étapes effectuées au cours des dernières 24 heures';
   const stepDescription = "L'activité physique permet en effet de réduire une surcharge pondérale, de contrôler la glycémie (sucre dans le sang), la tension artérielle et le cholesterol. Il est ainsi recommandé de pratiquer au moins 30 minutes d'exercice modérée 3 fois par semaine.";
@@ -99,26 +98,29 @@ export default function TabPodometreScreen() {
 
       <View style={styles.container}>
 
-        <ImageViewer 
-          placeholderImageSource={icons.podometre} 
-          width={350}
-          height={150}
-        />
-
-        <View style={{marginBottom: 16}} />
+        <View style={styles.heroCard}>
+          <ImageViewer 
+            placeholderImageSource={icons.podometre} 
+            width={320}
+            height={130}
+          />
+        </View>
+        <View style={styles.spaceMd} />
         
         {isPedometerAvailable === 'checking' && (
-          <Title text="Vérification du podomètre..." align='center' color={Colors.muted} />
+          <Title text="Vérification du podomètre..." align='center' color={Colors.muted} size={16} />
         )}
         {isPedometerAvailable === 'unavailable' && (
-          <Title text="Podomètre non disponible sur cet appareil" align='center' color={Colors.danger} />
+          <View style={styles.errorCard}>
+            <Title text="Podomètre non disponible sur cet appareil" align='center' color={Colors.danger} />
+          </View>
         )}
         {isPedometerAvailable === 'true' && (
-          <>
-            <Title text={stepLast24h.toLocaleUpperCase()} weight='bold' align='center' />
-            <Title text={String(currentStepCount)} color={Colors.danger} weight='bold' align='center' size={75} />
-            <Title text={stepDescription} size={15} align='center' color={Colors.muted} />
-          </>
+          <View style={styles.statsCard}>
+            <Title text={stepLast24h.toLocaleUpperCase()} weight='bold' align='center' size={14} />
+            <Title text={String(currentStepCount)} color={Colors.danger} weight='bold' align='center' size={68} />
+            <Title text={stepDescription} size={14} align='center' color={Colors.muted} />
+          </View>
         )}
       </View>
     </FlexContainer>
@@ -128,5 +130,31 @@ export default function TabPodometreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  heroCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#eceef2',
+  },
+  statsCard: {
+    marginTop: 4,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: '#eceef2',
+  },
+  errorCard: {
+    backgroundColor: '#fdeaea',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  spaceMd: {
+    marginBottom: 12,
   },
 });

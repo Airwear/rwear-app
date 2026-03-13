@@ -1,9 +1,8 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs, Redirect, useRootNavigationState } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import Colors from '@/constants/Colors';
 import Strings from '@/constants/Strings';
-import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { useAuth } from '@/contexts/authContext';
 
@@ -12,12 +11,11 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <FontAwesome size={22} style={styles.tabIcon} {...props} />;
 }
 
 export default function TabLayout() {
 
-  const colorScheme = useColorScheme();
   const labels = Strings['fr']['navigation']
   const { logged } = useAuth()
   // const rootNavigationState = useRootNavigationState();
@@ -33,6 +31,24 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.muted,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginBottom: 4,
+        },
+        tabBarStyle: {
+          height: 66,
+          paddingTop: 6,
+          paddingBottom: 8,
+          borderTopWidth: 1,
+          borderTopColor: '#eceef2',
+          backgroundColor: '#ffffff',
+        },
+        tabBarItemStyle: {
+          borderRadius: 10,
+          marginHorizontal: 2,
+        },
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
@@ -63,3 +79,9 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = {
+  tabIcon: {
+    marginBottom: -1,
+  },
+};

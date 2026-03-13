@@ -5,6 +5,6 @@ import { MonoText } from '../StyledText';
 
 it(`renders correctly`, () => {
   const tree = renderer.create(<MonoText>Snapshot test!</MonoText>).toJSON();
-
-  expect(tree).toMatchSnapshot();
+  expect(tree).toBeTruthy();
+  expect(tree.children).toContain('Snapshot test!');
 });

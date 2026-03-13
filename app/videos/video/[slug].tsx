@@ -1,9 +1,9 @@
 
-import { FlexContainer, ImageViewer, Indicator, Loader } from '@/components';
-import { useNavigation, useLocalSearchParams, useRouter } from 'expo-router';
+import { FlexContainer, Loader } from '@/components';
+import { useNavigation, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { VideoRawType } from '@/utils/type-def';
-import { _get, _post, apiRoutes } from '@/services/api';
+import { _get, apiRoutes } from '@/services/api';
 import Colors from '@/constants/Colors';
 import { StyleSheet, View, Text, Pressable,} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
@@ -63,7 +63,9 @@ export default function VideoItemScreen() {
 
   return (
     <FlexContainer color={Colors.white}>
-      <Video {...video}  />
+      <View style={styles.pageCard}>
+        <Video {...video}  />
+      </View>
     </FlexContainer>
   );
 }
@@ -75,9 +77,20 @@ const styles = StyleSheet.create({
   },
 
   pressable : {
-    width: 45, 
-    height: 30, 
+    width: 36,
+    height: 36,
     justifyContent:'center', 
-    alignItems: 'center'
+    alignItems: 'center',
+    borderRadius: 18,
+    backgroundColor: Colors.lightColor,
+  },
+
+  pageCard: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#eceef2',
+    backgroundColor: Colors.white,
+    overflow: 'hidden',
   },
 });

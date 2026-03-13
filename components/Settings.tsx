@@ -29,10 +29,10 @@ const _data: SettingType[] = [
 
 export default function Settings() {
 
-    const renderItem = ({ item, index }: any) => (
+    const renderItem = ({ item }: any) => (
         <Link href={item.url} asChild>
-            <Pressable style={styles.renderItem}>
-                <View style={{flex: 1}}>
+            <Pressable style={({ pressed }) => [styles.renderItem, pressed && styles.renderItemPressed]}>
+                <View style={styles.content}>
                     <Text style={styles.title}>{item.title}</Text>
                     <Text style={styles.description}>{item.description}</Text>
                 </View>
@@ -57,6 +57,7 @@ export default function Settings() {
                 keyExtractor={(item) => item.key}
                 renderItem={renderItem}
                 ItemSeparatorComponent={separator}
+                contentContainerStyle={styles.listContainer}
             />
         </View>
     )
@@ -64,29 +65,53 @@ export default function Settings() {
 
 const styles = StyleSheet.create({
     container: {
-        
+        flex: 1,
     },
+
+    listContainer: {
+        paddingTop: 6,
+        paddingHorizontal: 2,
+    },
+
+    content: {
+        flex: 1,
+    },
+
     description: {
         color: Colors.muted,
-        fontSize: 12,
+        fontSize: 13,
+        lineHeight: 18,
     },
+
     title: {
-        fontSize: 18,
-        marginBottom: 4
+        fontSize: 17,
+        marginBottom: 6,
+        color: Colors.darkColor,
+        fontWeight: '700',
     },
 
     renderItem: {
-        height: 90,
+        minHeight: 96,
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 16,
-        flexDirection: 'row'
+        paddingVertical: 14,
+        paddingHorizontal: 14,
+        flexDirection: 'row',
+        borderRadius: 14,
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#eceef2',
+    },
+
+    renderItemPressed: {
+        opacity: 0.92,
+        transform: [{ scale: 0.995 }],
     },
 
     separator: {
-        backgroundColor: Colors.lightColor,
+        backgroundColor: Colors.white,
         width: '100%',
-        height: 1,
+        height: 8,
     },
     buttonIcon: {
         width: 40,
