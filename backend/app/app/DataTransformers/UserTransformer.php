@@ -23,6 +23,7 @@ class UserTransformer implements TransformerContract
             'last_name' => $user->last_name,
             'first_name' => $user->first_name,
             'email' => $user->email,
+            'email_verified' => $user->email_verified_at !== null,
             'group_id' => $user->group_id,
             'group_name' => $user->group?->designation,
             'group_phone' => $user->group?->phone,

@@ -14,6 +14,8 @@ const apiRoutes = {
     login: '/users/login',
     register: '/users/register',
     editUser: '/users',
+    me: '/users/me',
+    resendVerification: '/users/resend-verification',
     passwordResetRawUrl: baseRoute + '/password/reset',
 
     vehicles: '/vehicles',

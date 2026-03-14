@@ -18,6 +18,8 @@ trait ConcernRegister
 
         $user = User::create($payload);
 
+        $user->sendEmailVerificationNotification();
+
         //$this->connected($user);
 
         return $user;

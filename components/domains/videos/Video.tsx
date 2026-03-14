@@ -62,7 +62,7 @@ function Details(video: VideoRawType) {
 
 const RenderLink = (item: VideoRawType) => (
     <View style={styles.renderItem}>
-        <ButtonSimple onPress={() => router.navigate(`/videos/play/${item.slug}`)} text="Consulter la vidéo" color={Colors.black}  />
+        <ButtonSimple onPress={() => router.navigate(`/videos/preview/${item.slug}`)} text="Consulter la vidéo" color={Colors.black}  />
     </View>
 );
 

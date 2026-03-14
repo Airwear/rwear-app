@@ -4,7 +4,7 @@ import { View, StyleSheet } from 'react-native';
 import { SelectList } from 'react-native-dropdown-select-list'
 import Colors from '@/constants/Colors';
 
-export default  function Dropdown({data, onSelect, placeholder}: DropdownType) {
+export default  function Dropdown({data, onSelect, placeholder, search = false}: DropdownType) {
 
   const [selected, setSelected] = useState<string>();
 
@@ -15,7 +15,7 @@ export default  function Dropdown({data, onSelect, placeholder}: DropdownType) {
             data={data} 
             save="key"
             placeholder={placeholder}
-            search={false}
+            search={search}
             onSelect={() => onSelect(selected)}
             boxStyles={styles.box}
             inputStyles={styles.input}

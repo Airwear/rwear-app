@@ -10,7 +10,8 @@ export type AuthDataType = {
     username?: string,
     fbm_token?: string,
     completed?: boolean,
-    updated_at?: boolean
+    updated_at?: boolean,
+    email_verified?: boolean,
 }
 
 export type AuthContextType = {
@@ -19,15 +20,21 @@ export type AuthContextType = {
     registering: boolean,
     updating?: boolean,
     logged: boolean,
+    isGuest: boolean,
+    emailVerified: boolean,
     error: string,
     message: string,
     baseUrl?: string,
     setUrl(url: string): Promise<any>;
     signIn(email: string, password: string): Promise<any>;
-    register(email: string, login: string, password: string, fbm_token?: string): Promise<any>;
+    signInAsGuest(): void;
+    register(email: string, login: string, password: string, fbm_token?: string, extras?: Record<string, any>): Promise<any>;
     update(data : AuthDataType): Promise<any>;
     deleteAccount?: () => Promise<void>;
     signOut(): void;
+    signOutGuest(): void;
+    resendVerificationEmail(): Promise<any>;
+    refreshUserData(): Promise<void>;
 }
 
 export type TitleType = {
@@ -230,6 +237,7 @@ export type DropdownType = {
     data: DropdownItemType[],
     placeholder?: string
     onSelect: (item: any) => void
+    search?: boolean
 }
 
 export type DateType = {

@@ -1,0 +1,111 @@
+{
+  "navigation": {
+    "home": "Home",
+    "search": "Search",
+    "setting": "Settings",
+    "preferences": "My assistance",
+    "messages": "Messages",
+    "documents": "Documents",
+    "account": "Account",
+    "help": "Need help",
+    "my_space": "Welcome",
+    "school_life": "School life",
+    "agenda": "Agenda"
+  },
+  "user": {
+    "login": "Login",
+    "username": "Username",
+    "email": "Email",
+    "emailAddress": "Email address",
+    "password": "Password",
+    "phone": "Phone",
+    "forget_password": "Forgot password?"
+  },
+  "action": {
+    "submit": "Submit",
+    "save": "Save",
+    "validate": "Validate",
+    "login": "Sign in",
+    "new_account": "Create an account"
+  },
+  "auth": {
+    "text_code": "Enter the 4-digit school code.",
+    "code": "Code"
+  },
+  "welcome": {
+    "title": "Welcome to AIRWEAR",
+    "subtitle": "Your sport & wellness app",
+    "description": "Transform your life with personalized training plans and intelligent progress tracking.",
+    "signIn": "Sign in",
+    "register": "Create an account",
+    "guest": "Explore without an account →",
+    "features": {
+      "plans": "Personalized plans",
+      "tracking": "Real-time tracking",
+      "goals": "Reach your goals"
+    }
+  },
+  "signIn": {
+    "title": "Sign in",
+    "subtitle": "Access your workouts and track your progress"
+  },
+  "register": {
+    "screenTitle": "Sign up",
+    "stepLabel": "Step {{step}} / 3",
+    "stepTitles": {
+      "1": "Your account",
+      "2": "Basic info",
+      "3": "Sport profile"
+    },
+    "stepSubtitles": {
+      "1": "Create your secure access.",
+      "2": "Tell us who you are.",
+      "3": "Personalise your training tracking."
+    },
+    "fields": {
+      "email": "Email address *",
+      "emailPlaceholder": "example@mail.com",
+      "username": "Username *",
+      "usernamePlaceholder": "Your username",
+      "password": "Password *",
+      "passwordPlaceholder": "Min. 6 characters",
+      "lastName": "Last name",
+      "lastNamePlaceholder": "Family name",
+      "firstName": "First name",
+      "firstNamePlaceholder": "First name",
+      "birthDate": "Date of birth",
+      "phone": "Phone (WhatsApp)",
+      "phonePlaceholder": "+1 234 567 8900",
+      "country": "Country",
+      "countryPlaceholder": "Search a country...",
+      "city": "City",
+      "cityPlaceholder": "Your city",
+      "weight": "Weight (kg)",
+      "weightPlaceholder": "70",
+      "height": "Height (cm)",
+      "heightPlaceholder": "170",
+      "goal": "Goal",
+      "goalPlaceholder": "Select a goal",
+      "pathology": "Pathology",
+      "pathologyPlaceholder": "Do you have a condition?",
+      "pathologyOther": "Specify",
+      "pathologyOtherPlaceholder": "Describe the condition"
+    },
+    "nav": {
+      "back": "← Back",
+      "next": "Next →",
+      "submit": "Sign up",
+      "submitting": "Signing up...",
+      "hasAccount": "Already have an account? Sign in"
+    }
+  },
+  "verifyEmail": {
+    "title": "Verify your email",
+    "description": "A verification email has been sent to {{email}}.\n\nClick the link in the email then come back here to continue.",
+    "check": "I verified my email",
+    "checking": "Checking...",
+    "resend": "Resend the email",
+    "resending": "Sending...",
+    "signOut": "Sign out"
+  }
+}

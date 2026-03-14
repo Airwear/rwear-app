@@ -1,13 +1,19 @@
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView, useColorScheme } from 'react-native';
 import { router } from 'expo-router';
 import { Text } from '@/components/Themed';
 import { FlexContainer, ImageViewer } from '@/components';
 import { ButtonSimple } from '@/components/buttons';
 import Colors from '@/constants/Colors';
 import { icons } from '@/utils';
+import { useAuth } from '@/hooks';
+import { useTranslation } from 'react-i18next';
 
 export default function WelcomeScreen() {
-  
+  const { signInAsGuest } = useAuth();
+  const scheme = useColorScheme();
+  const bg = scheme === 'dark' ? Colors.dark.background : Colors.light.background;
+  const { t } = useTranslation();
+
   const goToSignIn = () => {
     router.push('/sign-in');
   };
@@ -16,8 +22,13 @@ export default function WelcomeScreen() {
     router.push('/register');
   };
 
+  const goAsGuest = () => {
+    signInAsGuest();
+    router.replace('/(app)');
+  };
+
   return (
-    <FlexContainer color={Colors.white} push>
+    <FlexContainer color={bg} push>
       <ImageViewer 
         placeholderImageSource={icons.logo} 
         width={125}
@@ -27,16 +38,14 @@ export default function WelcomeScreen() {
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.heroCard}>
-            <Text style={styles.title}>Bienvenue sur AIRWEAR</Text>
-            <Text style={styles.subtitle}>Votre application de sport et bien-être</Text>
-            <Text style={styles.description}>
-              Transformez votre vie avec des plans d'entraînement personnalisés et un suivi intelligent de votre progression.
-            </Text>
+            <Text style={styles.title}>{t('welcome.title')}</Text>
+            <Text style={styles.subtitle}>{t('welcome.subtitle')}</Text>
+            <Text style={styles.description}>{t('welcome.description')}</Text>
 
             <View style={styles.spaceLg} />
 
             <ButtonSimple 
-              text="Se connecter"
+              text={t('welcome.signIn')}
               color={Colors.primary}
               onPress={goToSignIn}
             />
@@ -44,24 +53,32 @@ export default function WelcomeScreen() {
             <View style={styles.spaceSm} />
 
             <ButtonSimple 
-              text="Créer un compte"
+              text={t('welcome.register')}
               color={Colors.danger}
               onPress={goToRegister}
+            />
+
+            <View style={styles.spaceSm} />
+
+            <ButtonSimple
+              text={t('welcome.guest')}
+              color={Colors.muted}
+              onPress={goAsGuest}
             />
           </View>
 
           <View style={styles.featuresContainer}>
             <View style={styles.featureItem}>
               <Text style={styles.featureIcon}>💪</Text>
-              <Text style={styles.featureText}>Plans personnalisés</Text>
+              <Text style={styles.featureText}>{t('welcome.features.plans')}</Text>
             </View>
             <View style={styles.featureItem}>
               <Text style={styles.featureIcon}>📊</Text>
-              <Text style={styles.featureText}>Suivi en temps réel</Text>
+              <Text style={styles.featureText}>{t('welcome.features.tracking')}</Text>
             </View>
             <View style={styles.featureItem}>
               <Text style={styles.featureIcon}>🎯</Text>
-              <Text style={styles.featureText}>Atteindre vos objectifs</Text>
+              <Text style={styles.featureText}>{t('welcome.features.goals')}</Text>
             </View>
           </View>
         </ScrollView>

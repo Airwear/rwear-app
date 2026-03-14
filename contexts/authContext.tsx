@@ -2,7 +2,7 @@ import React, {createContext, useState, useEffect, useContext} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContextType, AuthDataType } from '@/utils/type-def';
 import axios from 'axios';
-import { _post, _put, apiRoutes, setAuthToken, resolvedBaseURL } from '@/services/api';
+import { _post, _put, _get, apiRoutes, setAuthToken, resolvedBaseURL } from '@/services/api';
 import { Loader } from '@/components';
 
 //Create the Auth Context with the data type specified
@@ -19,6 +19,8 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
   const [registering, setRegistering] = useState<boolean>(false);
   const [updating, setUpdating] = useState<boolean>(false);
   const [logged, isLogged] = useState<boolean>(false);
+  const [isGuest, setIsGuest] = useState<boolean>(false);
+  const [emailVerified, setEmailVerified] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [baseUrl, setBaseUrl] = useState<string>();
@@ -53,6 +55,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
         // Injecte le token sauvegardé s'il existe
         setAuthToken(_authData?.token || _authData?.access_token || _authData?.jwt || _authData?.bearer || _authData?.user?.token);
         isLogged(true);
+        setEmailVerified(_authData?.email_verified === true);
 
         //console.log('AuthContext@loadStorageData_', _authData)
         //console.log('AuthContext@isLogged', logged)
@@ -126,6 +129,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
     setAuthData(userData);
     AsyncStorage.setItem(AuthStorageKey, JSON.stringify(userData));
     isLogged(true);
+    setEmailVerified(userData?.email_verified === true);
     setLoading(false);
   };
 
@@ -166,20 +170,63 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
       setAuthToken(undefined);
       setAuthData(undefined);
       isLogged(false);
+      setIsGuest(false);
+      setEmailVerified(false);
       setLoading(false);
     }, 500);
+  };
+
+  const signInAsGuest = () => {
+    setIsGuest(true);
+    isLogged(false);
+    setEmailVerified(false);
+    setAuthData(undefined);
+  };
+
+  const signOutGuest = () => {
+    setIsGuest(false);
   };
 
   const setUrl = async (url: string) => {
     setBaseUrl(url)
   }
 
-  const register = async (email: string, login: string, password: string, fbm_token: string = '') => {
+  const resendVerificationEmail = async () => {
+    setError('');
+    setMessage('');
+    try {
+      const response = await _post(apiRoutes.resendVerification, {}, controller);
+      const { error: resErr, message: resMsg } = response;
+      if (resErr) {
+        setError(resMsg || 'Erreur lors du renvoi.');
+      } else {
+        setMessage(resMsg || 'Email de vérification envoyé.');
+      }
+    } catch (e: any) {
+      setError(e?.friendlyMessage || e?.message || 'Erreur réseau');
+    }
+  };
+
+  const refreshUserData = async () => {
+    try {
+      const response = await _get(apiRoutes.me, controller);
+      const { data } = response;
+      if (data) {
+        setAuthData(data);
+        setEmailVerified(data?.email_verified === true);
+        AsyncStorage.setItem(AuthStorageKey, JSON.stringify(data));
+      }
+    } catch (e: any) {
+      if (__DEV__) console.warn('[AUTH][REFRESH_ME]', e?.message);
+    }
+  };
+
+  const register = async (email: string, login: string, password: string, fbm_token: string = '', extras: Record<string, any> = {}) => {
     setRegistering(true);
     setError('');
     setMessage('');
 
-    return _post(apiRoutes.register, { email, username: login, password, fbm_token, group_id: 1 }, controller)
+    return _post(apiRoutes.register, { email, username: login, password, fbm_token, group_id: 1, ...extras }, controller)
       .then(response => {
         const { error, message } = response;
         if (error) {
@@ -240,7 +287,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
   }
 
   return (
-    <AuthContext.Provider value={{authData, signIn, update, deleteAccount, signOut, loading, logged, register, error, message, updating, registering, setUrl, baseUrl}}>
+    <AuthContext.Provider value={{authData, signIn, update, deleteAccount, signOut, loading, logged, isGuest, emailVerified, register, error, message, updating, registering, setUrl, baseUrl, resendVerificationEmail, refreshUserData, signInAsGuest, signOutGuest}}>
       {props.children}
     </AuthContext.Provider>
   );

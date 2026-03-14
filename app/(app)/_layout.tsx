@@ -17,14 +17,16 @@ function TabBarIcon(props: {
 export default function TabLayout() {
 
   const labels = Strings['fr']['navigation']
-  const { logged } = useAuth()
+  const { logged, emailVerified, isGuest } = useAuth()
   // const rootNavigationState = useRootNavigationState();
   // console.log('rootNavigationState', rootNavigationState?.key)
   
-  if (! logged) {
-    // On web, static rendering will stop here as the user is not authenticated
-    // in the headless Node process that the pages are rendered in.
+  if (!logged && !isGuest) {
     return <Redirect href="/sign-in" />;
+  }
+
+  if (logged && !emailVerified) {
+    return <Redirect href="/verify-email" />;
   }
 
   return (

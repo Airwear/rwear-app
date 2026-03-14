@@ -1,5 +1,7 @@
+import '@/i18n'; // initialise i18next + expo-localization
 import { AuthProvider } from '@/contexts';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -58,10 +60,16 @@ export default function RootLayout() {
 
 function RootAppLayout() {
   return (
+    <>
+    <StatusBar style="auto" />
     <Stack>
       <Stack.Screen
         name="welcome"
         options={{ headerShown: false, title: 'Bienvenue' }}
+      />
+      <Stack.Screen
+        name="verify-email"
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="sign-in"
@@ -76,5 +84,6 @@ function RootAppLayout() {
         options={{ headerShown: false, title: 'Accueil' }}
       />
     </Stack>
+    </>
   );
 }

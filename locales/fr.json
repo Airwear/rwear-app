@@ -1,0 +1,111 @@
+{
+  "navigation": {
+    "home": "Accueil",
+    "search": "Recherche",
+    "setting": "Paramètres",
+    "preferences": "Mes assistances",
+    "messages": "Messages",
+    "documents": "Documents",
+    "account": "Compte",
+    "help": "Besoin d'aide",
+    "my_space": "Bienvenue",
+    "school_life": "La vie scolaire",
+    "agenda": "Agenda"
+  },
+  "user": {
+    "login": "Login",
+    "username": "Nom d'utilisateur",
+    "email": "Email",
+    "emailAddress": "Adresse e-mail",
+    "password": "Mot de passe",
+    "phone": "Téléphone",
+    "forget_password": "Mot de passe oublié ?"
+  },
+  "action": {
+    "submit": "Soumettre",
+    "save": "Enregistrer",
+    "validate": "Valider",
+    "login": "Se connecter",
+    "new_account": "Créer un compte"
+  },
+  "auth": {
+    "text_code": "Renseigner le code de l'établissement à 4 chiffres.",
+    "code": "Code"
+  },
+  "welcome": {
+    "title": "Bienvenue sur AIRWEAR",
+    "subtitle": "Votre application de sport et bien-être",
+    "description": "Transformez votre vie avec des plans d'entraînement personnalisés et un suivi intelligent de votre progression.",
+    "signIn": "Se connecter",
+    "register": "Créer un compte",
+    "guest": "Explorer sans compte →",
+    "features": {
+      "plans": "Plans personnalisés",
+      "tracking": "Suivi en temps réel",
+      "goals": "Atteindre vos objectifs"
+    }
+  },
+  "signIn": {
+    "title": "Connexion",
+    "subtitle": "Accédez à vos entraînements et suivez votre progression"
+  },
+  "register": {
+    "screenTitle": "Inscription",
+    "stepLabel": "Étape {{step}} / 3",
+    "stepTitles": {
+      "1": "Votre compte",
+      "2": "Informations",
+      "3": "Profil sportif"
+    },
+    "stepSubtitles": {
+      "1": "Créez votre accès sécurisé.",
+      "2": "Dites-nous qui vous êtes.",
+      "3": "Personnalisez votre suivi sportif."
+    },
+    "fields": {
+      "email": "Adresse email *",
+      "emailPlaceholder": "exemple@mail.com",
+      "username": "Pseudo *",
+      "usernamePlaceholder": "Votre pseudo",
+      "password": "Mot de passe *",
+      "passwordPlaceholder": "Min. 6 caractères",
+      "lastName": "Nom",
+      "lastNamePlaceholder": "Nom de famille",
+      "firstName": "Prénom",
+      "firstNamePlaceholder": "Prénom",
+      "birthDate": "Date de naissance",
+      "phone": "Téléphone (WhatsApp)",
+      "phonePlaceholder": "+33 6 00 00 00 00",
+      "country": "Pays",
+      "countryPlaceholder": "Rechercher un pays...",
+      "city": "Ville",
+      "cityPlaceholder": "Votre ville",
+      "weight": "Poids (kg)",
+      "weightPlaceholder": "70",
+      "height": "Taille (cm)",
+      "heightPlaceholder": "170",
+      "goal": "Objectif",
+      "goalPlaceholder": "Sélectionner un objectif",
+      "pathology": "Pathologie",
+      "pathologyPlaceholder": "Avez-vous une pathologie ?",
+      "pathologyOther": "Précisez",
+      "pathologyOtherPlaceholder": "Précisez la pathologie"
+    },
+    "nav": {
+      "back": "← Retour",
+      "next": "Suivant →",
+      "submit": "S'inscrire",
+      "submitting": "Inscription...",
+      "hasAccount": "Déjà un compte ? Se connecter"
+    }
+  },
+  "verifyEmail": {
+    "title": "Vérifiez votre email",
+    "description": "Un email de vérification a été envoyé à {{email}}.\n\nCliquez sur le lien dans l'email puis revenez ici pour continuer.",
+    "check": "J'ai vérifié mon email",
+    "checking": "Vérification...",
+    "resend": "Renvoyer l'email",
+    "resending": "Envoi en cours...",
+    "signOut": "Se déconnecter"
+  }
+}

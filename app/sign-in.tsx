@@ -1,4 +1,4 @@
-import { Text,  StyleSheet, View, ScrollView} from 'react-native';
+import { Text, StyleSheet, View, ScrollView, useColorScheme } from 'react-native';
 import { AppPolicy, FlexContainer, Form, ImageViewer, Title, } from '@/components';
 import { useNavigation, router  } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -6,12 +6,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@/constants/Colors';
 import { ButtonSimple } from '@/components/buttons';
 import {useApp, useAuth} from '@/hooks';
+import { useTranslation } from 'react-i18next';
 import { icons } from '@/utils';
 
 export default function IndexScreen() {
 
   const navigation = useNavigation();
   const {  signIn, loading, error, logged } = useAuth();
+  const scheme = useColorScheme();
+  const bg = scheme === 'dark' ? Colors.dark.background : Colors.light.background;
+  const { t } = useTranslation();
   const { label } = useApp();
 
   const [values, setValues] = useState<any>({
@@ -69,7 +73,7 @@ export default function IndexScreen() {
   }, [logged, error]);
 
   return (
-    <FlexContainer color={Colors.white} push>
+    <FlexContainer color={bg} push>
 
       <ImageViewer 
         placeholderImageSource={icons.logo} 
@@ -83,8 +87,8 @@ export default function IndexScreen() {
         <ScrollView contentContainerStyle={styles.content}>
 
             <View style={styles.headerCard}>
-              <Text style={styles.title}>Connexion</Text>
-              <Text style={styles.subtitle}>Accédez à vos entraînements et suivez votre progression</Text>
+              <Text style={styles.title}>{t('signIn.title')}</Text>
+              <Text style={styles.subtitle}>{t('signIn.subtitle')}</Text>
             </View>
 
             {error.length > 0 && <View style={styles.errorCard}><Title text={error} color={Colors.danger} size={15} /></View>}
