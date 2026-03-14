@@ -18,65 +18,51 @@ export default function TabPodometreScreen() {
 
   const subscribe = async () => {
     try {
-      // For Android 10+, try to use Pedometer even if isAvailable returns false
-      // because some devices don't report availability correctly
-      let isAvailable = await Pedometer.isAvailableAsync();
-      
-      // On Android, always try to enable it
-      if (Platform.OS === 'android') {
-        isAvailable = true;
-      }
-      
-      setIsPedometerAvailable(String(isAvailable));
-
-      if (isAvailable) {
-        try {
-          const end = new Date();
-          const start = new Date();
-          start.setDate(end.getDate() - 1);
-
-          console.log('Fetching step count from', start.toISOString(), 'to', end.toISOString());
-
-          const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
-
-          if (pastStepCountResult && pastStepCountResult.steps) {
-            console.log('Got steps:', pastStepCountResult.steps);
-            setPastStepCount(pastStepCountResult.steps);
-            setCurrentStepCount(pastStepCountResult.steps);
-          } else {
-            console.log('No step count result');
-            // Set to 0 if no data available yet
-            setPastStepCount(0);
-            setCurrentStepCount(0);
-          }
-
-          // Watch for real-time step updates
-          const subscription = Pedometer.watchStepCount(result => {
-            console.log('Step update:', result.steps);
-            setCurrentStepCount(prevState => {
-              const newCount = prevState + result.steps;
-              console.log('New total steps:', newCount);
-              return newCount;
-            });
-          });
-          
-          return subscription;
-        } catch (watchError) {
-          console.warn('Watch error (will retry):', watchError);
-          // Still show available even if watch fails initially
+      if (Platform.OS === 'android' && typeof Pedometer.requestPermissionsAsync === 'function') {
+        const { status } = await Pedometer.requestPermissionsAsync();
+        if (status !== 'granted') {
+          setIsPedometerAvailable('unavailable');
+          setHasError(true);
           return null;
         }
       }
+
+      const isAvailable = await Pedometer.isAvailableAsync();
+      setIsPedometerAvailable(String(isAvailable));
+
+      if (!isAvailable) {
+        setHasError(true);
+        return null;
+      }
+
+      try {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 1);
+
+        console.log('Fetching step count from', start.toISOString(), 'to', end.toISOString());
+
+        const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
+        const steps = pastStepCountResult?.steps ?? 0;
+
+        setPastStepCount(steps);
+        setCurrentStepCount(steps);
+
+        const subscription = Pedometer.watchStepCount(result => {
+          const increment = result?.steps ?? 0;
+          setCurrentStepCount(prevState => prevState + increment);
+        });
+
+        return subscription;
+      } catch (watchError) {
+        console.warn('Watch error:', watchError);
+        return null;
+      }
     } catch (error) {
       console.error('Erreur podomètre:', error);
-      // On Android, try fallback
-      if (Platform.OS === 'android') {
-        setIsPedometerAvailable('true');
-        setHasError(false);
-      } else {
-        setIsPedometerAvailable('unavailable');
-        setHasError(true);
-      }
+      setIsPedometerAvailable('unavailable');
+      setHasError(true);
+      return null;
     }
   };
 

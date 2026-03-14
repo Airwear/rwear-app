@@ -132,7 +132,7 @@ export default function Player1(video: VideoRawType) {
         CastContext.setSharedMediaInfo({
           mediaInfo: {
             contentId: video.url,
-            contentType: 'video/mp4',
+            contentType: 'application/x-mpegURL',
             streamType: 'BUFFERED',
             metadata: {
               type: 0, // GENERIC
