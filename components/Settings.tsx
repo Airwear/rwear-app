@@ -1,37 +1,64 @@
 import React from "react";
-import { View, FlatList, Pressable, StyleSheet, Text, Alert, Switch, Platform } from "react-native";
-import { SettingType } from "@/utils/type-def";
+import { View, Pressable, StyleSheet, Text, Alert, Switch, Platform, ActivityIndicator } from "react-native";
 import Colors from "@/constants/Colors";
-import { Link, useRouter } from "expo-router";
-import { FontAwesome } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/hooks";
 import { useGuestGuard } from "@/hooks";
 import GuestConversionModal from "./GuestConversionModal";
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { cancelScheduledReminder, loadReminderSettings, saveReminderSettings, scheduleDailyReminder } from '@/utils/dailyReminder';
 
-const _data: SettingType[] = [
-    {
-        title: "Mon compte",
-        description: "Complétez les informations relatives à votre compte, et profitez de l'ensemble des fonctionnalités",
-        url: 'edit-user',
-        key: "account",
-    },
-    
-    /*{
-        title: "Conditions d'utilisation",
-        description: "Consultez nos conditions d'utilisation et paramètres de confidentialité",
-        url: 'policy',
-        key: "policy",
-    },*/
+type RowProps = {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+    value?: string;
+    showChevron?: boolean;
+    onPress?: () => void;
+    rightControl?: React.ReactNode;
+    danger?: boolean;
+};
 
-    {
-        title: "Version logiciel",
-        description: "Consultez les informations relatives à la version de votre applications",
-        url: 'version',
-        key: "version",
-    },
-]
+function SettingRow({
+    icon,
+    label,
+    value,
+    showChevron = true,
+    onPress,
+    rightControl,
+    danger = false,
+}: RowProps) {
+    return (
+        <Pressable
+            android_ripple={{ color: '#EEF1F4' }}
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            onPress={onPress}
+            disabled={!onPress}
+        >
+            <View style={styles.leftContent}>
+                <Ionicons
+                    name={icon}
+                    size={20}
+                    color={danger ? '#D32F2F' : '#5F6368'}
+                    style={styles.rowIcon}
+                />
+                <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>{label}</Text>
+            </View>
+
+            <View style={styles.rightContent}>
+                {value ? <Text numberOfLines={1} style={styles.rowValue}>{value}</Text> : null}
+                {rightControl}
+                {!rightControl && showChevron ? (
+                    <Ionicons name="chevron-forward" size={17} color="#B0B4BB" style={styles.chevron} />
+                ) : null}
+            </View>
+        </Pressable>
+    );
+}
+
+function SectionTitle({ title }: { title: string }) {
+    return <Text style={styles.groupTitle}>{title}</Text>;
+}
 
 export default function Settings() {
     const { deleteAccount } = useAuth();
@@ -163,77 +190,50 @@ export default function Settings() {
         setShowTimePickerIOS((prev) => !prev);
     };
 
-    const renderItem = ({ item }: any) => {
-        const isSensitive = item.key === 'account';
-        if (isSensitive) {
-            return (
-                <Pressable
-                    style={({ pressed }) => [styles.renderItem, pressed && styles.renderItemPressed]}
-                    onPress={() => requireAuth(() => router.push('/edit-user'))}
-                >
-                    <View style={styles.content}>
-                        <Text style={styles.title}>{item.title}</Text>
-                        <Text style={styles.description}>{item.description}</Text>
-                    </View>
-                    <View style={styles.buttonIcon}>
-                        <FontAwesome name="chevron-right" size={20} color={Colors.muted} />
-                    </View>
-                </Pressable>
-            );
-        }
-        return (
-            <Link href={item.url} asChild>
-                <Pressable style={({ pressed }) => [styles.renderItem, pressed && styles.renderItemPressed]}>
-                    <View style={styles.content}>
-                        <Text style={styles.title}>{item.title}</Text>
-                        <Text style={styles.description}>{item.description}</Text>
-                    </View>
-                    <View style={styles.buttonIcon}>
-                        <FontAwesome name="chevron-right" size={20} color={Colors.muted} />
-                    </View>
-                </Pressable>
-            </Link>
-        );
-    };
-
-    const separator = () => <View style={styles.separator} />;
-
     return (
         <View style={styles.container}>
-            <FlatList
-                data={_data}
-                keyExtractor={(item) => item.key}
-                renderItem={renderItem}
-                ItemSeparatorComponent={separator}
-                contentContainerStyle={styles.listContainer}
-            />
+            <SectionTitle title="COMPTE" />
+            <View style={styles.card}>
+                <SettingRow
+                    icon="person-outline"
+                    label="Mon compte"
+                    value="Modifier"
+                    onPress={() => requireAuth(() => router.push('/edit-user'))}
+                />
+            </View>
 
-            <View style={styles.reminderCard}>
-                <View style={styles.reminderTopRow}>
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Rappel quotidien</Text>
-                        <Text style={styles.description}>Recevez une notification locale chaque jour.</Text>
-                    </View>
-                    <Switch
-                        value={reminderEnabled}
-                        disabled={reminderBusy}
-                        onValueChange={onToggleReminder}
-                        trackColor={{ false: '#d1d5db', true: '#86efac' }}
-                        thumbColor={reminderEnabled ? '#166534' : '#f9fafb'}
-                    />
-                </View>
+            <SectionTitle title="PREFERENCES" />
+            <View style={styles.card}>
+                <SettingRow
+                    icon="notifications-outline"
+                    label="Rappel quotidien"
+                    showChevron={false}
+                    rightControl={
+                        <Switch
+                            value={reminderEnabled}
+                            disabled={reminderBusy}
+                            onValueChange={onToggleReminder}
+                            trackColor={{ false: '#DADCE0', true: '#A8DAB5' }}
+                            thumbColor={reminderEnabled ? '#1B873F' : '#FFFFFF'}
+                        />
+                    }
+                />
 
-                <Pressable
-                    onPress={onPickReminderTime}
-                    style={({ pressed }) => [styles.timeButton, pressed && styles.timeButtonPressed]}
-                >
-                    <Text style={styles.timeLabel}>Heure du rappel</Text>
-                    <Text style={styles.timeValue}>
-                        {reminderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                </Pressable>
+                {reminderEnabled ? (
+                    <>
+                        <View style={styles.separator} />
+                        <SettingRow
+                            icon="time-outline"
+                            label="Heure du rappel"
+                            value={reminderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            onPress={onPickReminderTime}
+                        />
+                    </>
+                ) : null}
+            </View>
 
-                {Platform.OS === 'ios' && showTimePickerIOS && (
+            {Platform.OS === 'ios' && showTimePickerIOS && (
+                <View style={styles.pickerCard}>
                     <DateTimePicker
                         value={reminderDate}
                         mode="time"
@@ -245,20 +245,33 @@ export default function Settings() {
                             }
                         }}
                     />
-                )}
+                </View>
+            )}
+
+            <SectionTitle title="INFOS" />
+            <View style={styles.card}>
+                <SettingRow
+                    icon="information-circle-outline"
+                    label="Version logiciel"
+                    value="v1.0.9"
+                    onPress={() => router.push('/version')}
+                />
             </View>
 
-            <Pressable
-                onPress={onDeletePress}
-                disabled={!deleteAccount || deleting}
-                style={({ pressed }) => [
-                    styles.deleteButton,
-                    (!deleteAccount || deleting) && styles.deleteButtonDisabled,
-                    pressed && styles.deleteButtonPressed,
-                ]}
-            >
-                <Text style={styles.deleteText}>{deleting ? "Suppression..." : "Supprimer mon compte"}</Text>
-            </Pressable>
+            <View style={styles.criticalActionWrap}>
+                <Pressable
+                    onPress={onDeletePress}
+                    disabled={!deleteAccount || deleting}
+                    style={({ pressed }) => [
+                        styles.deleteButton,
+                        (!deleteAccount || deleting) && styles.deleteButtonDisabled,
+                        pressed && styles.deleteButtonPressed,
+                    ]}
+                >
+                    {deleting ? <ActivityIndicator color="#D32F2F" /> : <Text style={styles.deleteText}>Supprimer mon compte</Text>}
+                </Pressable>
+                <Text style={styles.deleteHint}>Cette action est irreversible.</Text>
+            </View>
 
             <GuestConversionModal visible={guestModalVisible} onClose={closeGuestModal} />
         </View>
@@ -268,111 +281,100 @@ export default function Settings() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-
-    listContainer: {
-        paddingTop: 6,
         paddingHorizontal: 2,
     },
-
-    content: {
-        flex: 1,
-    },
-
-    description: {
-        color: Colors.muted,
-        fontSize: 13,
-        lineHeight: 18,
-    },
-
-    title: {
-        fontSize: 17,
-        marginBottom: 6,
-        color: Colors.darkColor,
-        fontWeight: '700',
-    },
-
-    renderItem: {
-        minHeight: 96,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: 14,
-        flexDirection: 'row',
-        borderRadius: 14,
-        backgroundColor: '#ffffff',
-        borderWidth: 1,
-        borderColor: '#eceef2',
-    },
-
-    renderItemPressed: {
-        opacity: 0.92,
-        transform: [{ scale: 0.995 }],
-    },
-
-    separator: {
-        backgroundColor: Colors.white,
-        width: '100%',
-        height: 8,
-    },
-    reminderCard: {
-        marginTop: 8,
+    groupTitle: {
+        fontSize: 11,
+        color: '#8C9096',
+        letterSpacing: 0.9,
         marginBottom: 8,
-        paddingHorizontal: 14,
-        paddingVertical: 14,
+        marginTop: 14,
+        fontWeight: '600',
+        paddingLeft: 2,
+    },
+    card: {
+        backgroundColor: '#FFFFFF',
         borderRadius: 14,
-        backgroundColor: '#ffffff',
+        overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#eceef2',
+        borderColor: '#E8EBEF',
+        shadowColor: '#000',
+        shadowOpacity: Platform.OS === 'ios' ? 0.06 : 0,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: Platform.OS === 'android' ? 1 : 0,
     },
-    reminderTopRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 10,
-    },
-    timeButton: {
-        marginTop: 12,
-        minHeight: 44,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-        paddingHorizontal: 12,
+    row: {
+        minHeight: 52,
+        paddingHorizontal: 14,
         paddingVertical: 10,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#f8fafc',
     },
-    timeButtonPressed: {
+    rowPressed: {
         opacity: 0.9,
+        backgroundColor: '#F5F7FA',
     },
-    timeLabel: {
-        color: Colors.muted,
-        fontSize: 13,
+    leftContent: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    rightContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        maxWidth: '58%',
+    },
+    rowIcon: {
+        marginRight: 12,
+    },
+    rowLabel: {
+        color: '#1F1F1F',
+        fontSize: 15,
         fontWeight: '600',
     },
-    timeValue: {
-        color: Colors.darkColor,
-        fontSize: 15,
-        fontWeight: '700',
+    rowLabelDanger: {
+        color: '#D32F2F',
     },
-    buttonIcon: {
-        width: 40,
-        height: 40,
-        justifyContent: 'flex-end',
+    rowValue: {
+        color: '#6B7280',
+        fontSize: 14,
+        marginRight: 6,
+        flexShrink: 1,
+        textAlign: 'right',
+    },
+    chevron: {
+        marginLeft: 2,
+    },
+    separator: {
+        height: StyleSheet.hairlineWidth,
+        marginLeft: 46,
+        backgroundColor: '#E9EDF2',
+    },
+    pickerCard: {
+        marginTop: 8,
+        borderRadius: 14,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#E8EBEF',
+        overflow: 'hidden',
+    },
+    criticalActionWrap: {
+        marginTop: 18,
         alignItems: 'center',
-        flexDirection: 'row'
     },
     deleteButton: {
-        marginTop: 12,
-        borderRadius: 14,
+        minHeight: 44,
+        borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#fecaca',
-        backgroundColor: '#991b1b',
+        borderColor: '#F4C7C7',
+        backgroundColor: '#FFF5F5',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: 48,
+        paddingHorizontal: 14,
+        minWidth: 180,
     },
     deleteButtonDisabled: {
         opacity: 0.6,
@@ -381,8 +383,13 @@ const styles = StyleSheet.create({
         opacity: 0.85,
     },
     deleteText: {
-        color: '#fee2e2',
+        color: '#D32F2F',
         fontWeight: '700',
         fontSize: 14,
-    }
+    },
+    deleteHint: {
+        marginTop: 8,
+        color: '#9AA0A6',
+        fontSize: 12,
+    },
 })
