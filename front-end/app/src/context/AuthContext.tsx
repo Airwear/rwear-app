@@ -22,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.airwear.com';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://rwear-sport.octet-group.org';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);

@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.airwear.com';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://rwear-sport.octet-group.org';
 
 class ApiService {
   private api: AxiosInstance;

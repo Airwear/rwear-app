@@ -10,12 +10,62 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 const AuthStorageKey = '@baseapp'
 
+function toSafeUserError(input: any, fallback: string): string {
+  const raw =
+    (typeof input === 'string' && input) ||
+    input?.response?.data?.message ||
+    input?.message ||
+    '';
+
+  const message = String(raw).trim();
+  if (!message) return fallback;
+
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes('network') ||
+    lower.includes('timeout') ||
+    lower.includes('failed to fetch') ||
+    lower.includes('certificate') ||
+    lower.includes('ssl')
+  ) {
+    return 'Serveur injoignable. Verifiez votre connexion et reessayez.';
+  }
+
+  if (
+    lower.includes('401') ||
+    lower.includes('unauthorized') ||
+    lower.includes('non authentifie') ||
+    lower.includes('token expired')
+  ) {
+    return 'Session expiree. Veuillez vous reconnecter.';
+  }
+
+  if (
+    lower.includes('sqlstate') ||
+    lower.includes('exception') ||
+    lower.includes('stack trace') ||
+    lower.includes('no query results for model') ||
+    lower.includes('illuminate\\') ||
+    lower.includes('vendor/')
+  ) {
+    return fallback;
+  }
+
+  if (message.length > 160) {
+    return fallback;
+  }
+
+  return message;
+}
+
 // @ts-ignore
 const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
   const [authData, setAuthData] = useState<AuthDataType | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
   const [registering, setRegistering] = useState<boolean>(false);
+  const [resendingVerification, setResendingVerification] = useState<boolean>(false);
   const [updating, setUpdating] = useState<boolean>(false);
   const [logged, isLogged] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -73,7 +123,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
         isLogged(false)
 
         if(error) {
-          setError(message);
+          setError(toSafeUserError(message, 'Impossible de se connecter pour le moment.'));
 
         } else {
 
@@ -88,13 +138,19 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
       })
       .catch(error => {
-        console.log('error', error.message)
+        console.log('error', error?.message)
+        setError(toSafeUserError(error, 'Serveur injoignable. Verifiez votre connexion et reessayez.'));
         isLogged(false)
       })
       .finally(() => setLoading(false))
   };
 
   const update = async (data: AuthDataType) => {
+
+    if (!data?.slug || data.slug === 'undefined') {
+      setError("Impossible de mettre à jour le profil: identifiant utilisateur manquant.");
+      return Promise.resolve(null);
+    }
 
     setUpdating(true);
 
@@ -110,7 +166,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
           const {message, data, error} = response;
           
           if(error) {
-            setError(message)
+            setError(toSafeUserError(message, 'Impossible de mettre a jour le profil pour le moment.'))
           } else {
 
             setMessage(message);
@@ -120,7 +176,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
           }
         })
-        .catch(error => setError(error.response.data.message as string))
+        .catch(error => setError(toSafeUserError(error, 'Impossible de mettre a jour le profil pour le moment.')))
         .finally(() => setUpdating(false))
   };
 
@@ -160,7 +216,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
         const {user, error, message} = response
         
         if (error) {
-          setError(message)
+          setError(toSafeUserError(message, 'Impossible de creer le compte pour le moment.'))
         } else {
           const data = response.data;
           if(data) {
@@ -176,8 +232,30 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
       })
       .catch(error => {
         console.log('error', error)
+        setError(toSafeUserError(error, 'Impossible de creer le compte pour le moment.'))
       })
       .finally(() => setRegistering(false))
+  };
+
+  const resendVerificationEmail = async () => {
+    setResendingVerification(true);
+    setError('');
+    setMessage('');
+
+    return _post(apiRoutes.resendVerification, {}, controller)
+      .then(response => {
+        const { error, message } = response;
+
+        if (error) {
+          setError(toSafeUserError(message, "Impossible d'envoyer l'email de verification."));
+        } else {
+          setMessage(message || "Email de vérification envoyé.");
+        }
+      })
+      .catch(error => {
+        setError(toSafeUserError(error, "Impossible d'envoyer l'email de verification."));
+      })
+      .finally(() => setResendingVerification(false));
   };
 
   if(loading) {
@@ -185,7 +263,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
   }
 
   return (
-    <AuthContext.Provider value={{authData, signIn, update, signOut, loading, logged, register, error, message, updating, registering, setUrl, baseUrl}}>
+    <AuthContext.Provider value={{authData, signIn, update, signOut, loading, logged, register, resendVerificationEmail, error, message, updating, registering, resendingVerification, setUrl, baseUrl}}>
       {props.children}
     </AuthContext.Provider>
   );

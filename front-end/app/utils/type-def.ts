@@ -17,6 +17,7 @@ export type AuthContextType = {
     authData?: AuthDataType,
     loading: boolean,
     registering: boolean,
+    resendingVerification: boolean,
     updating?: boolean,
     logged: boolean,
     error: string,
@@ -25,6 +26,7 @@ export type AuthContextType = {
     setUrl(url: string): Promise<any>;
     signIn(email: string, password: string): Promise<any>;
     register(email: string, login: string, password: string, fbm_token?: string): Promise<any>;
+    resendVerificationEmail(): Promise<any>;
     update(data : AuthDataType): Promise<any>;
     signOut(): void;
 }

@@ -18,7 +18,11 @@ trait ConcernRegister
 
         $user = User::create($payload);
 
-        $user->sendEmailVerificationNotification();
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Verification email failed: ' . $e->getMessage());
+        }
 
         //$this->connected($user);
 

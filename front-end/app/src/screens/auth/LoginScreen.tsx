@@ -6,6 +6,26 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation';
 
+function toSafeLoginError(err: any): string {
+  const raw = err?.response?.data?.message || err?.message || '';
+  const lower = String(raw).toLowerCase();
+
+  if (
+    lower.includes('sqlstate') ||
+    lower.includes('exception') ||
+    lower.includes('stack trace') ||
+    lower.includes('no query results for model')
+  ) {
+    return 'Erreur de connexion. Veuillez reessayer.';
+  }
+
+  if (lower.includes('network') || lower.includes('timeout') || lower.includes('failed to fetch')) {
+    return 'Serveur injoignable. Verifiez votre connexion et reessayez.';
+  }
+
+  return String(raw || 'Erreur de connexion. Veuillez reessayer.');
+}
+
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +51,7 @@ export default function LoginScreen() {
       // 🔹 Redirection après succès
       navigation.replace('Home');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erreur de connexion');
+      setError(toSafeLoginError(err));
     } finally {
       setLoading(false);
     }

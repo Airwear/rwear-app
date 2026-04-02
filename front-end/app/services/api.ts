@@ -10,6 +10,7 @@ const URL_MAP = baseRoute + "/map"
 const apiRoutes = {
     login: '/users/login',
     register: '/users/register',
+  resendVerification: '/users/resend-verification',
     editUser: '/users',
     passwordResetRawUrl: baseRoute + '/password/reset',
 

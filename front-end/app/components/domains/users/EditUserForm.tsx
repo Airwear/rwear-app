@@ -32,6 +32,9 @@ export default function EditUserForm () {
         if(values.email?.length === 0) {
             return null
         }
+        if (!authData?.slug) {
+            return null
+        }
         update({...values, fbm_token: token, id: String(authData?.id), slug: authData?.slug });
     }
 

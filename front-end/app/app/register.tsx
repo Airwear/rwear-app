@@ -10,7 +10,7 @@ import { icons } from '@/utils';
 export default function RegisterScreen() {
 
   const navigation = useNavigation();
-  const {  register, registering, error } = useAuth();
+  const { register, registering, resendingVerification, resendVerificationEmail, error, message } = useAuth();
   const { label } = useApp();
 
   const [values, setValues] = useState<any>({
@@ -54,6 +54,7 @@ export default function RegisterScreen() {
         <ScrollView>
 
             {error.length > 0 && <Title text={error} color={Colors.danger} size={15} />}
+            {message.length > 0 && <Title text={message} color={Colors.green} size={15} />}
 
             <Form.Input 
               label={label.user.username} 
@@ -89,6 +90,15 @@ export default function RegisterScreen() {
               color={Colors.primary}
               onPress={handleSubmit}
               showIndicator={registering}
+            />
+
+            <View style={{height: 10}} />
+
+            <ButtonSimple
+              text={'Renvoyer l\'email de vérification'}
+              color={Colors.orange}
+              onPress={resendVerificationEmail}
+              showIndicator={resendingVerification}
             />
            <AppPolicy />
         </ScrollView>
