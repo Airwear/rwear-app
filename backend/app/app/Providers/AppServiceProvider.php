@@ -5,9 +5,12 @@ namespace App\Providers;
 use App\Contracts\Auth\UserAccessInterface;
 use App\Managers\Users\UserAccessManager;
 use App\View\Composers\SharedViewData;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,5 +37,16 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrap();
         Facades\View::composer('*', SharedViewData::class);
+
+        VerifyEmail::createUrlUsing(function ($notifiable) {
+            return URL::temporarySignedRoute(
+                'verification.mobile.verify',
+                now()->addMinutes(Config::get('auth.verification.expire', 60)),
+                [
+                    'id' => $notifiable->getKey(),
+                    'hash' => sha1($notifiable->getEmailForVerification()),
+                ]
+            );
+        });
     }
 }

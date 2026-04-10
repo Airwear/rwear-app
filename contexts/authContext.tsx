@@ -11,6 +11,17 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 const AuthStorageKey = '@baseapp'
 
+function resolveEmailVerified(payload: any): boolean {
+  if (!payload) return false;
+
+  const rawVerified = payload?.email_verified ?? payload?.user?.email_verified;
+  if (typeof rawVerified === 'boolean') return rawVerified;
+  if (rawVerified === 1 || rawVerified === '1' || rawVerified === 'true') return true;
+
+  const verifiedAt = payload?.email_verified_at ?? payload?.user?.email_verified_at;
+  return Boolean(verifiedAt);
+}
+
 // @ts-ignore
 const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
@@ -55,7 +66,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
         // Injecte le token sauvegardé s'il existe
         setAuthToken(_authData?.token || _authData?.access_token || _authData?.jwt || _authData?.bearer || _authData?.user?.token);
         isLogged(true);
-        setEmailVerified(_authData?.email_verified === true);
+        setEmailVerified(resolveEmailVerified(_authData));
 
         //console.log('AuthContext@loadStorageData_', _authData)
         //console.log('AuthContext@isLogged', logged)
@@ -129,7 +140,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
     setAuthData(userData);
     AsyncStorage.setItem(AuthStorageKey, JSON.stringify(userData));
     isLogged(true);
-    setEmailVerified(userData?.email_verified === true);
+    setEmailVerified(resolveEmailVerified(userData));
     setLoading(false);
   };
 
@@ -207,18 +218,21 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
     }
   };
 
-  const refreshUserData = async () => {
+  const refreshUserData = async (): Promise<boolean> => {
     try {
       const response = await _get(apiRoutes.me, controller);
-      const { data } = response;
-      if (data) {
-        setAuthData(data);
-        setEmailVerified(data?.email_verified === true);
-        AsyncStorage.setItem(AuthStorageKey, JSON.stringify(data));
+      const userData = response?.data || response;
+      if (userData) {
+        const verified = resolveEmailVerified(userData);
+        setAuthData(userData);
+        setEmailVerified(verified);
+        AsyncStorage.setItem(AuthStorageKey, JSON.stringify(userData));
+        return verified;
       }
     } catch (e: any) {
       if (__DEV__) console.warn('[AUTH][REFRESH_ME]', e?.message);
     }
+    return false;
   };
 
   const register = async (email: string, login: string, password: string, fbm_token: string = '', extras: Record<string, any> = {}) => {

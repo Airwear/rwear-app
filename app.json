@@ -2,6 +2,7 @@
   "expo": {
     "name": "Rwear App",
     "slug": "rwear-app",
+    "scheme": "rwear",
     "version": "1.0.9",
     "orientation": "default",
     "icon": "./assets/images/icon.png",

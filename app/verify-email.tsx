@@ -23,9 +23,11 @@ export default function VerifyEmailScreen() {
 
   const handleCheck = async () => {
     setChecking(true);
-    await refreshUserData();
+    const verified = await refreshUserData();
     setChecking(false);
-    // La garde dans (app)/_layout redirige automatiquement si emailVerified devient true
+    if (verified) {
+      router.replace('/(app)');
+    }
   };
 
   const handleSignOut = async () => {

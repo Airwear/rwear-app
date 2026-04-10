@@ -47,24 +47,31 @@ export default function VideoTypeList() {
             asChild
         >
             <Pressable style={({ pressed }) => [styles.renderItem, { backgroundColor: surface, borderColor: border, shadowColor: text }, pressed && styles.renderItemPressed]}>
-                <View style={styles.headerBlock}>
-                    <View style={styles.titleRow}>
-                      <Text style={[styles.title, { color: text }]}>{item.designation}</Text>
-                      <View style={[styles.countBadge, { backgroundColor: Colors.orange }]}> 
-                        <Text style={styles.countBadgeText}>{item.trainings_count || 0}</Text>
-                      </View>
-                    </View>
-                    <Text style={[styles.subtitle, { color: muted }]}>Decouvrir les seances</Text>
-                </View>
-                <ImageBackground source={{uri: item.image}} style={[styles.image, {backgroundColor: Colors.black}]}>
+                <ImageBackground source={{uri: item.image}} style={[styles.image, {backgroundColor: Colors.black}]}> 
                     <View style={styles.imageOverlay} />
+                    <View style={styles.imageTopRow}>
+                        <View style={[styles.countBadge, { backgroundColor: Colors.orange }]}> 
+                            <Text style={styles.countBadgeText}>{item.trainings_count || 0}</Text>
+                        </View>
+                        <View style={styles.livePill}>
+                            <Text style={styles.livePillText}>VIDEOS</Text>
+                        </View>
+                    </View>
+                    <View style={styles.headerBlock}>
+                        <Text style={[styles.title, { color: Colors.white }]} numberOfLines={2}>{item.designation}</Text>
+                        <Text style={[styles.subtitle, { color: '#E8EBEF' }]}>Decouvrir les seances</Text>
+                    </View>
                 </ImageBackground>
+
                 {item.info !== undefined && (
                     <View style={styles.description}>
                         <Text style={[styles.infoText, { color: desc }]} numberOfLines={2}>{item.info}</Text>
                     </View>
                 )}
-            
+
+                <View style={[styles.cardFooter, { borderTopColor: border }]}> 
+                    <Text style={[styles.cardFooterText, { color: muted }]}>Voir les videos de cette categorie</Text>
+                </View>
             </Pressable>
         </Link>
     );
@@ -92,8 +99,12 @@ export default function VideoTypeList() {
                 keyExtractor={(item:any) => String(item.id)}
                 renderItem={renderItem}
                 ItemSeparatorComponent={separator}
-                showsVerticalScrollIndicator={false}
+                horizontal
+                showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.listContainer}
+                snapToAlignment="start"
+                snapToInterval={290}
+                decelerationRate="fast"
             />
 
             {isGuest && list.length > 3 ? (
@@ -123,6 +134,7 @@ const styles = StyleSheet.create({
 
     listContainer: {
         paddingBottom: 20,
+        paddingRight: 10,
     },
 
     text: {
@@ -133,13 +145,14 @@ const styles = StyleSheet.create({
 
     description: {
         paddingHorizontal: 10,
-        paddingBottom: 10,
+        paddingVertical: 10,
     },
 
     headerBlock: {
-        paddingHorizontal: 10,
-        paddingTop: 12,
-        paddingBottom: 6,
+        position: 'absolute',
+        left: 12,
+        right: 12,
+        bottom: 10,
     },
 
     titleRow: {
@@ -150,8 +163,8 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 15,
-        marginBottom: 2,
+        fontSize: 16,
+        marginBottom: 4,
         fontWeight: 'bold',
         flex: 1,
     },
@@ -173,6 +186,7 @@ const styles = StyleSheet.create({
 
     subtitle: {
         fontSize: 12,
+        fontWeight: '600',
     },
 
     infoText: {
@@ -180,9 +194,9 @@ const styles = StyleSheet.create({
     },
 
     renderItem: {
-        minHeight: 186,
+        width: 280,
+        minHeight: 238,
         borderRadius: 14,
-        marginBottom: 10,
         overflow: 'hidden',
         borderWidth: 1,
         shadowOpacity: 0.08,
@@ -215,18 +229,56 @@ const styles = StyleSheet.create({
     },
 
     separator: {
-        height: 2,
+        width: 10,
     },
 
     image: {
-        flex: 1,
+        height: 162,
         resizeMode: 'cover',
     },
 
     imageOverlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: Colors.black,
-        opacity: 0.22,
+        opacity: 0.38,
+    },
+
+    imageTopRow: {
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        right: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
+    livePill: {
+        paddingHorizontal: 9,
+        paddingVertical: 4,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.35)',
+        backgroundColor: 'rgba(0,0,0,0.35)',
+    },
+
+    livePillText: {
+        color: Colors.white,
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 0.5,
+    },
+
+    cardFooter: {
+        borderTopWidth: 1,
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        backgroundColor: 'rgba(255,255,255,0.02)',
+    },
+
+    cardFooterText: {
+        fontSize: 12,
+        fontWeight: '600',
     },
 
     

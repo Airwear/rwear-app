@@ -54,6 +54,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Cible de redirection après clic sur le lien de vérification email.
+    // Exemple mobile: rwear://verify-email?status=verified
+    'mobile_verify_redirect' => env('MOBILE_VERIFY_REDIRECT', 'rwear://verify-email?status=verified'),
+
     'asset_url' => env('ASSET_URL', null),
 
     /*

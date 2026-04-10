@@ -6,6 +6,8 @@ import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CastContext } from 'react-native-google-cast';
+import { CastButton } from '@/components/domains/videos/CastButton';
 
 export default function VideoPreviewScreen() {
   const navigation = useNavigation();
@@ -39,6 +41,37 @@ export default function VideoPreviewScreen() {
     return () => controller.abort();
   }, [slug]);
 
+  useEffect(() => {
+    if (!video?.url) {
+      return;
+    }
+
+    try {
+      CastContext.setSharedMediaInfo({
+        mediaInfo: {
+          contentId: video.url,
+          contentType: 'application/x-mpegURL',
+          streamType: 'BUFFERED',
+          metadata: {
+            type: 0,
+            metadataType: 0,
+            title: video.designation || 'Video',
+            subtitle: video.category_name || 'AIRWEAR',
+            images: video.cover ? [{ url: video.cover }] : [],
+          },
+          customData: {
+            autoPlay: true,
+            preloadedContent: {
+              mediaUrl: video.url,
+            },
+          },
+        },
+      });
+    } catch {
+      // Keep screen functional if cast metadata cannot be set.
+    }
+  }, [video?.url, video?.designation, video?.category_name, video?.cover]);
+
   const onStartVideo = () => {
     if (!slug) return;
     router.push({ pathname: '/videos/play/[slug]', params: { slug } });
@@ -51,6 +84,13 @@ export default function VideoPreviewScreen() {
 
         <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}> 
           <Text style={[styles.title, { color: text }]}>{video?.designation ?? 'Video'}</Text>
+
+          <View style={styles.castRow}>
+            <View style={[styles.castWrap, { borderColor: border, backgroundColor: isDark ? '#1B2026' : '#F7F9FC' }]}> 
+              <CastButton tintColor={text} />
+            </View>
+            <Text style={[styles.castLabel, { color: muted }]}>Caster cette video</Text>
+          </View>
 
           <View style={styles.metaRow}>
             <Text style={[styles.meta, { color: muted }]}>Duree : {video?.duration_in_text ?? '-'}</Text>
@@ -107,6 +147,24 @@ const styles = StyleSheet.create({
   metaRow: {
     gap: 6,
     marginBottom: 12,
+  },
+  castRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  castWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  castLabel: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   meta: {
     fontSize: 13,

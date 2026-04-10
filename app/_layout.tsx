@@ -13,6 +13,7 @@ import 'react-native-reanimated';
 import { AppProvider } from '@/contexts/appContext';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
+import { applyThemePreference, getThemePreference } from '@/utils/themePreference';
 
 // Use Firebase notification
 // <FBMessageProvider>
@@ -43,6 +44,23 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadThemePreference = async () => {
+      const preference = await getThemePreference();
+      if (active) {
+        applyThemePreference(preference);
+      }
+    };
+
+    loadThemePreference();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (!loaded) {
     return null;

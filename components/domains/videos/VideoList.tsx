@@ -1,7 +1,9 @@
 import { View, FlatList, Pressable, StyleSheet, Text, Image, useColorScheme } from "react-native";
 import { VideoRawType } from "@/utils/type-def";
 import Colors from "@/constants/Colors";
-import { Link } from "expo-router";
+import { router } from "expo-router";
+import { CastContext } from 'react-native-google-cast';
+import { CastButton } from './CastButton';
 
 export default function VideoList({list} : {list: VideoRawType[]}) {
     const scheme = useColorScheme();
@@ -12,26 +14,66 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
     const muted = isDark ? '#9AA3AD' : Colors.muted;
     const detail = isDark ? '#D6DBE0' : Colors.darkColor;
 
+    const setCastMedia = (item: VideoRawType) => {
+        if (!item.url) {
+            return;
+        }
+
+        try {
+            CastContext.setSharedMediaInfo({
+                mediaInfo: {
+                    contentId: item.url,
+                    contentType: 'application/x-mpegURL',
+                    streamType: 'BUFFERED',
+                    metadata: {
+                        type: 0,
+                        metadataType: 0,
+                        title: item.designation || 'Video',
+                        subtitle: item.category_name || 'AIRWEAR',
+                        images: item.cover ? [{ url: item.cover }] : [],
+                    },
+                    customData: {
+                        autoPlay: true,
+                        preloadedContent: {
+                            mediaUrl: item.url,
+                        },
+                    },
+                },
+            });
+        } catch {
+            // Keep navigation usable even if cast metadata cannot be set.
+        }
+    };
+
     const renderItem = ({ item }: any) => (
-        <Link
-            href={{
-                pathname: '/videos/preview/[slug]',
-                params: {
-                    slug: item.slug,
-                }
+        <Pressable
+            onPress={() => {
+                setCastMedia(item);
+                router.push({ pathname: '/videos/preview/[slug]', params: { slug: item.slug } });
             }}
-            asChild
-            push
+            style={({ pressed }) => [styles.renderItem, { backgroundColor: surface, borderColor: border, shadowColor: text }, pressed && styles.renderItemPressed]}
         >
-            <Pressable style={({ pressed }) => [styles.renderItem, { backgroundColor: surface, borderColor: border, shadowColor: text }, pressed && styles.renderItemPressed]}>
-                <Image style={styles.image} source={{uri: item.cover}} />
+                <View>
+                    <Image style={styles.image} source={{uri: item.cover}} />
+                    <View style={[styles.imageGradientTop, { backgroundColor: isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)' }]} />
+                    <Pressable
+                        style={[styles.castBubble, { borderColor: border, backgroundColor: isDark ? 'rgba(18,20,24,0.78)' : 'rgba(255,255,255,0.9)' }]}
+                        onPress={(event) => {
+                            event.stopPropagation?.();
+                            setCastMedia(item);
+                        }}
+                        onPressIn={() => setCastMedia(item)}
+                    >
+                        <CastButton tintColor={text} />
+                    </Pressable>
+                </View>
                 <View style={styles.textContainer}>
                     <Text style={[styles.title, { color: text }]}>{item.designation}</Text>
                     <Text style={[styles.details, { color: detail }]}>{item.duration_in_text}</Text>
                     <Text style={[styles.coach, { color: muted }]}>Niveau : {item.level_name}</Text>
+                    <View style={[styles.accentLine, { backgroundColor: Colors.orange }]} />
                 </View>
             </Pressable>
-        </Link>
     );
 
     const separator = () => <View style={styles.separator} />;
@@ -112,6 +154,31 @@ const styles = StyleSheet.create({
 
     image: {
         width: 110,
+        height: 94,
         resizeMode: 'cover',
+    },
+
+    imageGradientTop: {
+        ...StyleSheet.absoluteFillObject,
+    },
+
+    castBubble: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    accentLine: {
+        marginTop: 8,
+        height: 3,
+        width: 34,
+        borderRadius: 999,
+        opacity: 0.9,
     },
 })

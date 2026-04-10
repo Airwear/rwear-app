@@ -34,7 +34,7 @@ export type AuthContextType = {
     signOut(): void;
     signOutGuest(): void;
     resendVerificationEmail(): Promise<any>;
-    refreshUserData(): Promise<void>;
+    refreshUserData(): Promise<boolean>;
 }
 
 export type TitleType = {

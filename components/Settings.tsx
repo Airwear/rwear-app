@@ -8,6 +8,7 @@ import { useGuestGuard } from "@/hooks";
 import GuestConversionModal from "./GuestConversionModal";
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { cancelScheduledReminder, loadReminderSettings, saveReminderSettings, scheduleDailyReminder } from '@/utils/dailyReminder';
+import { applyThemePreference, getThemePreference, setThemePreference } from '@/utils/themePreference';
 
 type RowProps = {
     icon: keyof typeof Ionicons.glyphMap;
@@ -88,6 +89,7 @@ export default function Settings() {
     const [reminderId, setReminderId] = React.useState<string | null>(null);
     const [reminderBusy, setReminderBusy] = React.useState(false);
     const [showTimePickerIOS, setShowTimePickerIOS] = React.useState(false);
+    const [darkModeEnabled, setDarkModeEnabled] = React.useState(isDark);
 
     React.useEffect(() => {
         let mounted = true;
@@ -103,6 +105,34 @@ export default function Settings() {
             mounted = false;
         };
     }, []);
+
+    React.useEffect(() => {
+        let mounted = true;
+
+        getThemePreference().then((preference) => {
+            if (!mounted) return;
+            if (preference === 'dark') {
+                setDarkModeEnabled(true);
+                return;
+            }
+            if (preference === 'light') {
+                setDarkModeEnabled(false);
+                return;
+            }
+            setDarkModeEnabled(isDark);
+        });
+
+        return () => {
+            mounted = false;
+        };
+    }, [isDark]);
+
+    const onToggleDarkMode = async (enabled: boolean) => {
+        setDarkModeEnabled(enabled);
+        const preference = enabled ? 'dark' : 'light';
+        applyThemePreference(preference);
+        await setThemePreference(preference);
+    };
 
     const onDeletePress = () => {
         requireAuth(() => {
@@ -222,6 +252,21 @@ export default function Settings() {
 
             <SectionTitle title="PREFERENCES" />
             <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}> 
+                <SettingRow
+                    icon="moon-outline"
+                    label="Mode sombre"
+                    showChevron={false}
+                    rightControl={
+                        <Switch
+                            value={darkModeEnabled}
+                            onValueChange={onToggleDarkMode}
+                            trackColor={{ false: isDark ? '#3A414A' : '#DADCE0', true: '#A8DAB5' }}
+                            thumbColor={darkModeEnabled ? '#1B873F' : '#FFFFFF'}
+                        />
+                    }
+                />
+
+                <View style={[styles.separator, { backgroundColor: border }]} />
                 <SettingRow
                     icon="notifications-outline"
                     label="Rappel quotidien"

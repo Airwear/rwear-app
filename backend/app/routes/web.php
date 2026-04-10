@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\PolicyController;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,6 +24,24 @@ Route::get(config('glide.servers.trainings.base_url') . '/{path}', [
 
 
 Route::get('/')->uses("App\\Http\\Controllers\\HomeController")->name('home');
+
+Route::get('/email/mobile-verify/{id}/{hash}', function (Request $request, string $id, string $hash) {
+    if (! $request->hasValidSignature()) {
+        abort(403, 'Lien de verification invalide.');
+    }
+
+    $user = User::query()->findOrFail($id);
+
+    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        abort(403, 'Lien de verification invalide.');
+    }
+
+    if (! $user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+    }
+
+    return redirect()->away(config('app.mobile_verify_redirect'));
+})->name('verification.mobile.verify');
 
 Route::get('policy', [PolicyController::class, '__invoke'])->name('policy');
 Route::get('cgu', [PolicyController::class, '__invoke'])->name('cgu');
