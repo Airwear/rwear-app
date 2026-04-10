@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Pressable, StyleSheet, Text, Alert, Switch, Platform, ActivityIndicator } from "react-native";
+import { View, Pressable, StyleSheet, Text, Alert, Switch, Platform, ActivityIndicator, useColorScheme } from "react-native";
 import Colors from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -28,10 +28,20 @@ function SettingRow({
     rightControl,
     danger = false,
 }: RowProps) {
+    const scheme = useColorScheme();
+    const isDark = scheme === 'dark';
+    const surface = isDark ? '#121418' : Colors.white;
+    const border = isDark ? '#2A2E34' : '#E9EDF2';
+    const text = isDark ? Colors.white : '#1F1F1F';
+    const muted = isDark ? '#9AA3AD' : '#5F6368';
+
     return (
         <Pressable
-            android_ripple={{ color: '#EEF1F4' }}
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            android_ripple={{ color: border }}
+            style={({ pressed }) => [
+                styles.row,
+                { backgroundColor: pressed ? (isDark ? '#1B2026' : '#F5F7FA') : surface },
+            ]}
             onPress={onPress}
             disabled={!onPress}
         >
@@ -39,17 +49,17 @@ function SettingRow({
                 <Ionicons
                     name={icon}
                     size={20}
-                    color={danger ? '#D32F2F' : '#5F6368'}
+                    color={danger ? '#D32F2F' : muted}
                     style={styles.rowIcon}
                 />
-                <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>{label}</Text>
+                <Text style={[styles.rowLabel, { color: danger ? '#D32F2F' : text }]}>{label}</Text>
             </View>
 
             <View style={styles.rightContent}>
-                {value ? <Text numberOfLines={1} style={styles.rowValue}>{value}</Text> : null}
+                {value ? <Text numberOfLines={1} style={[styles.rowValue, { color: muted }]}>{value}</Text> : null}
                 {rightControl}
                 {!rightControl && showChevron ? (
-                    <Ionicons name="chevron-forward" size={17} color="#B0B4BB" style={styles.chevron} />
+                    <Ionicons name="chevron-forward" size={17} color={isDark ? '#7E8792' : '#B0B4BB'} style={styles.chevron} />
                 ) : null}
             </View>
         </Pressable>
@@ -57,10 +67,18 @@ function SettingRow({
 }
 
 function SectionTitle({ title }: { title: string }) {
-    return <Text style={styles.groupTitle}>{title}</Text>;
+    const scheme = useColorScheme();
+    const isDark = scheme === 'dark';
+    return <Text style={[styles.groupTitle, { color: isDark ? '#9AA3AD' : '#8C9096' }]}>{title}</Text>;
 }
 
 export default function Settings() {
+    const scheme = useColorScheme();
+    const isDark = scheme === 'dark';
+    const pageBg = isDark ? Colors.dark.background : Colors.light.background;
+    const surface = isDark ? '#121418' : Colors.white;
+    const border = isDark ? '#2A2E34' : '#E8EBEF';
+    const muted = isDark ? '#9AA3AD' : '#9AA0A6';
     const { deleteAccount } = useAuth();
     const { requireAuth, guestModalVisible, closeGuestModal } = useGuestGuard();
     const [deleting, setDeleting] = React.useState(false);
@@ -191,9 +209,9 @@ export default function Settings() {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: pageBg }]}> 
             <SectionTitle title="COMPTE" />
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}> 
                 <SettingRow
                     icon="person-outline"
                     label="Mon compte"
@@ -203,7 +221,7 @@ export default function Settings() {
             </View>
 
             <SectionTitle title="PREFERENCES" />
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}> 
                 <SettingRow
                     icon="notifications-outline"
                     label="Rappel quotidien"
@@ -213,7 +231,7 @@ export default function Settings() {
                             value={reminderEnabled}
                             disabled={reminderBusy}
                             onValueChange={onToggleReminder}
-                            trackColor={{ false: '#DADCE0', true: '#A8DAB5' }}
+                            trackColor={{ false: isDark ? '#3A414A' : '#DADCE0', true: '#A8DAB5' }}
                             thumbColor={reminderEnabled ? '#1B873F' : '#FFFFFF'}
                         />
                     }
@@ -221,7 +239,7 @@ export default function Settings() {
 
                 {reminderEnabled ? (
                     <>
-                        <View style={styles.separator} />
+                        <View style={[styles.separator, { backgroundColor: border }]} />
                         <SettingRow
                             icon="time-outline"
                             label="Heure du rappel"
@@ -233,7 +251,7 @@ export default function Settings() {
             </View>
 
             {Platform.OS === 'ios' && showTimePickerIOS && (
-                <View style={styles.pickerCard}>
+                <View style={[styles.pickerCard, { backgroundColor: surface, borderColor: border }]}> 
                     <DateTimePicker
                         value={reminderDate}
                         mode="time"
@@ -249,7 +267,7 @@ export default function Settings() {
             )}
 
             <SectionTitle title="INFOS" />
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}> 
                 <SettingRow
                     icon="information-circle-outline"
                     label="Version logiciel"
@@ -270,7 +288,7 @@ export default function Settings() {
                 >
                     {deleting ? <ActivityIndicator color="#D32F2F" /> : <Text style={styles.deleteText}>Supprimer mon compte</Text>}
                 </Pressable>
-                <Text style={styles.deleteHint}>Cette action est irreversible.</Text>
+                <Text style={[styles.deleteHint, { color: muted }]}>Cette action est irreversible.</Text>
             </View>
 
             <GuestConversionModal visible={guestModalVisible} onClose={closeGuestModal} />
@@ -293,11 +311,9 @@ const styles = StyleSheet.create({
         paddingLeft: 2,
     },
     card: {
-        backgroundColor: '#FFFFFF',
         borderRadius: 14,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#E8EBEF',
         shadowColor: '#000',
         shadowOpacity: Platform.OS === 'ios' ? 0.06 : 0,
         shadowRadius: 10,
@@ -311,10 +327,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-    },
-    rowPressed: {
-        opacity: 0.9,
-        backgroundColor: '#F5F7FA',
     },
     leftContent: {
         flex: 1,
@@ -331,7 +343,6 @@ const styles = StyleSheet.create({
         marginRight: 12,
     },
     rowLabel: {
-        color: '#1F1F1F',
         fontSize: 15,
         fontWeight: '600',
     },
@@ -339,7 +350,6 @@ const styles = StyleSheet.create({
         color: '#D32F2F',
     },
     rowValue: {
-        color: '#6B7280',
         fontSize: 14,
         marginRight: 6,
         flexShrink: 1,
@@ -351,7 +361,6 @@ const styles = StyleSheet.create({
     separator: {
         height: StyleSheet.hairlineWidth,
         marginLeft: 46,
-        backgroundColor: '#E9EDF2',
     },
     pickerCard: {
         marginTop: 8,

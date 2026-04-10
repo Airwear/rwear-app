@@ -18,16 +18,24 @@ export default function VideoPlayer({ route, navigation }: Props) {
   const [casting, setCasting] = useState(false);
   const [paused, setPaused] = useState(false);
 
+  const handleGoBack = React.useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate('Home');
+  }, [navigation]);
+
   // 🔹 Gestion du bouton retour Android
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        navigation.goBack();
+        handleGoBack();
         return true;
       };
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
-      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [navigation])
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [handleGoBack])
   );
 
   // 🔹 Gestion du Cast
@@ -116,6 +124,9 @@ export default function VideoPlayer({ route, navigation }: Props) {
       {error && (
         <View style={styles.errorBanner}><Text style={styles.errorText}>{error}</Text></View>
       )}
+      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+        <Text style={styles.backButtonText}>Retour</Text>
+      </TouchableOpacity>
       <View style={styles.overlayButtons}>
         <CastButton style={styles.castButton} />
         {!casting && (
@@ -134,6 +145,16 @@ export default function VideoPlayer({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'black' },
   video: { flex: 1 },
+  backButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  backButtonText: { color: '#fff', fontWeight: '600' },
   overlayButtons: { position: 'absolute', top: 16, right: 16, flexDirection: 'row', gap: 12, alignItems: 'center' },
   castButton: { width: 30, height: 30, tintColor: 'white' },
   actionBtn: { backgroundColor: 'rgba(0,0,0,0.6)', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20 },

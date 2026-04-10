@@ -13,10 +13,10 @@ export default function WelcomeScreen({ navigation }: Props) {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.colors.text }]}>
-          Bienvenue sur Rwear
+          Bienvenue sur Airwearsport.
         </Text>
         <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-          Votre plateforme de fitness personnalisée
+          Votre application de fitness et bien-être.
         </Text>
       </View>
 

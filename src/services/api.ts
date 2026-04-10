@@ -71,7 +71,7 @@ class ApiService {
   }
 
   // Training/Workout endpoints
-  async getTrainings(params?: { category?: string; difficulty?: string }) {
+  async getTrainings(params?: { category_id?: string; category?: string; difficulty?: string }) {
     const response = await this.api.get('/api/trainings', { params });
     return response.data;
   }

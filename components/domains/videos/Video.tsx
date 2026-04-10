@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, Image } from "react-native";
+import { View, StyleSheet, Text, Image, useColorScheme } from "react-native";
 import { VideoRawType } from "@/utils/type-def";
 import Colors from "@/constants/Colors";
 import { router } from "expo-router";
@@ -7,19 +7,26 @@ import Title from "@/components/Title";
 import { ButtonSimple } from "@/components/buttons";
 
 export default function Video(video: VideoRawType) {
+    const scheme = useColorScheme();
+    const isDark = scheme === 'dark';
+    const surface = isDark ? '#121418' : Colors.white;
+    const border = isDark ? '#2A2E34' : '#eceef2';
+    const text = isDark ? Colors.white : Colors.darkColor;
+    const muted = isDark ? '#9AA3AD' : Colors.muted;
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: surface }]}> 
             <View style={styles.cover}>
                 <Image style={styles.image} source={{uri: video.cover}} />
             </View>
-            <Details {...video} />
+            <Details {...video} isDark={isDark} />
             <View style={styles.titleContainer}>
-                <Title size={21} text={video.designation.toUpperCase()} weight="bold" push={4} />
-                <Text style={styles.label}><Text style={styles.labelKey}>Coach :</Text> {video.coach_name}</Text>
-                <Text style={styles.label}><Text style={styles.labelKey}>Niveau :</Text> {video.level_name}</Text>
-                <Text style={styles.label}><Text style={styles.labelKey}>Matériels :</Text> {video.materiel_list}</Text>
+                <Title size={21} text={video.designation.toUpperCase()} weight="bold" push={4} color={text} />
+                <Text style={[styles.label, { color: text }]}><Text style={styles.labelKey}>Coach :</Text> {video.coach_name}</Text>
+                <Text style={[styles.label, { color: text }]}><Text style={styles.labelKey}>Niveau :</Text> {video.level_name}</Text>
+                <Text style={[styles.label, { color: text }]}><Text style={styles.labelKey}>Materiels :</Text> {video.materiel_list}</Text>
                 <View style={styles.spaceXs} />
-                <Text style={styles.description}>{video.description}</Text>
+                <Text style={[styles.description, { color: text }]}>{video.description}</Text>
             </View>
             <RenderLink {...video} />
         </View>
@@ -27,34 +34,39 @@ export default function Video(video: VideoRawType) {
 }
 
 
-function Details(video: VideoRawType) {
+function Details(video: VideoRawType & { isDark?: boolean }) {
+    const border = video.isDark ? '#2A2E34' : '#eceef2';
+    const bg = video.isDark ? '#1B2026' : '#fcfcfd';
+    const muted = video.isDark ? '#9AA3AD' : Colors.muted;
+    const text = video.isDark ? '#D6DBE0' : Colors.darkColor;
+
     return (
-        <View style={styles.detailsContainer}>
+        <View style={[styles.detailsContainer, { borderColor: border, backgroundColor: bg }]}> 
             <View style={styles.detailsItem}>
                 <FontAwesome
                     name="calendar"
                     size={35}
-                    color={Colors.muted}
+                    color={muted}
                 />
-                <Text style={styles.details}>{video.duration_in_text}</Text>
+                <Text style={[styles.details, { color: text }]}>{video.duration_in_text}</Text>
             </View>
 
             <View style={styles.detailsItem}>
                 <FontAwesome
                     name="list"
                     size={35}
-                    color={Colors.muted}
+                    color={muted}
                 />
-                <Text style={styles.details}>{video.level_name}</Text>
+                <Text style={[styles.details, { color: text }]}>{video.level_name}</Text>
             </View>
 
             <View style={styles.detailsItem}>
                 <FontAwesome
                     name="user"
                     size={35}
-                    color={Colors.muted}
+                    color={muted}
                 />
-                <Text style={styles.details}>{video.coach_name}</Text>
+                <Text style={[styles.details, { color: text }]}>{video.coach_name}</Text>
             </View>
         </View>
     )
@@ -69,7 +81,6 @@ const RenderLink = (item: VideoRawType) => (
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.white,
     },
 
     detailsContainer: {
@@ -79,8 +90,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderTopWidth: 1,
         borderBottomWidth: 1,
-        borderColor: '#eceef2',
-        backgroundColor: '#fcfcfd',
     },
 
     titleContainer: {
@@ -101,7 +110,6 @@ const styles = StyleSheet.create({
     },
 
     description: {
-        color: Colors.darkColor,
         fontSize: 14,
         marginBottom: 2,
         lineHeight: 20,
@@ -112,13 +120,11 @@ const styles = StyleSheet.create({
         fontSize: 13,
         marginTop: 5,
         fontWeight: '600',
-        color: Colors.darkColor,
     },
 
     label: {
         fontSize: 13,
         marginBottom: 5,
-        color: Colors.darkColor,
     },
 
     labelKey: {

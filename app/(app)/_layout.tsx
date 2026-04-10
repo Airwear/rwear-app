@@ -1,6 +1,7 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs, Redirect } from 'expo-router';
+import { useColorScheme } from 'react-native';
 import Colors from '@/constants/Colors';
 import Strings from '@/constants/Strings';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
@@ -17,6 +18,12 @@ function TabBarIcon(props: {
 export default function TabLayout() {
 
   const labels = Strings['fr']['navigation']
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const tabBackground = isDark ? '#121418' : Colors.white;
+  const tabBorder = isDark ? '#2A2E34' : '#eceef2';
+  const tabInactive = isDark ? '#98A2AD' : Colors.muted;
+  const tabActive = Colors.orange;
   const { logged, emailVerified, isGuest } = useAuth()
   // const rootNavigationState = useRootNavigationState();
   // console.log('rootNavigationState', rootNavigationState?.key)
@@ -32,24 +39,30 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.muted,
+        tabBarActiveTintColor: tabActive,
+        tabBarInactiveTintColor: tabInactive,
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
-          marginBottom: 4,
+          fontWeight: '700',
+          marginBottom: 3,
         },
         tabBarStyle: {
-          height: 66,
-          paddingTop: 6,
-          paddingBottom: 8,
+          height: 70,
+          paddingTop: 8,
+          paddingBottom: 10,
           borderTopWidth: 1,
-          borderTopColor: '#eceef2',
-          backgroundColor: '#ffffff',
+          borderTopColor: tabBorder,
+          backgroundColor: tabBackground,
+          shadowColor: '#111111',
+          shadowOpacity: isDark ? 0 : 0.05,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: -3 },
+          elevation: 8,
         },
         tabBarItemStyle: {
-          borderRadius: 10,
-          marginHorizontal: 2,
+          borderRadius: 12,
+          marginHorizontal: 4,
+          marginTop: 2,
         },
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.

@@ -34,7 +34,13 @@ class MainActivity : ReactActivity() {
       enableEdgeToEdge()
       // SafeAreaProvider (JS) gère les insets système
 
+    // @generated begin expo-splashscreen - expo prebuild (DO NOT MODIFY) sync-f3ff59a738c56c9a6119210cb55f0b613eb8b6af
+    SplashScreenManager.registerOnActivity(this)
+    // @generated end expo-splashscreen
       super.onCreate(null)
+// @generated begin react-native-google-cast-onCreate - expo prebuild (DO NOT MODIFY) sync-489050f2bf9933a98bbd9d93137016ae14c22faa
+    RNGCCastContext.getSharedInstance(this)
+// @generated end react-native-google-cast-onCreate
 
       // Initialisation Google Cast pour permettre la diffusion vers Chromecast
       RNGCCastContext.getSharedInstance(this)

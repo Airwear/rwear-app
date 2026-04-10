@@ -73,17 +73,19 @@ const pathologyOptions = [
 ];
 
 
-function StepIndicator({ step }: { step: number }) {
+function StepIndicator({ step, isDark }: { step: number; isDark: boolean }) {
+  const stepInactive = isDark ? '#2A2E34' : '#eceef2';
+  const stepMuted = isDark ? '#9AA3AD' : Colors.muted;
   return (
     <View style={styles.stepRow}>
       {[1, 2, 3].map(s => (
         <View key={s} style={styles.stepItem}>
-          <View style={[styles.stepDot, step >= s && styles.stepDotActive]}>
-            <Text style={[styles.stepDotText, step >= s && styles.stepDotTextActive]}>
+          <View style={[styles.stepDot, { backgroundColor: stepInactive }, step >= s && styles.stepDotActive]}>
+            <Text style={[styles.stepDotText, { color: stepMuted }, step >= s && styles.stepDotTextActive]}>
               {s}
             </Text>
           </View>
-          {s < 3 && <View style={[styles.stepLine, step > s && styles.stepLineActive]} />}
+          {s < 3 && <View style={[styles.stepLine, { backgroundColor: stepInactive }, step > s && styles.stepLineActive]} />}
         </View>
       ))}
     </View>
@@ -95,6 +97,12 @@ export default function RegistrationScreen() {
   const { register, registering, error: authError } = useAuth();
   const scheme = useColorScheme();
   const bg = scheme === 'dark' ? Colors.dark.background : Colors.light.background;
+  const isDark = scheme === 'dark';
+  const surface = isDark ? '#121418' : Colors.white;
+  const border = isDark ? '#2A2E34' : '#eceef2';
+  const titleColor = isDark ? Colors.white : Colors.darkColor;
+  const mutedColor = isDark ? '#9AA3AD' : Colors.muted;
+  const errorBg = isDark ? '#3A1F24' : '#fdeaea';
   const { t } = useTranslation();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -184,23 +192,23 @@ export default function RegistrationScreen() {
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 
-          <StepIndicator step={step} />
+          <StepIndicator step={step} isDark={isDark} />
 
-          <View style={styles.headerCard}>
-            <Text style={styles.stepLabel}>{t('register.stepLabel', { step })}</Text>
-            <Text style={styles.title}>{t(`register.stepTitles.${step}`)}</Text>
-            <Text style={styles.subtitle}>{t(`register.stepSubtitles.${step}`)}</Text>
+          <View style={[styles.headerCard, { backgroundColor: surface, borderColor: border }]}> 
+            <Text style={[styles.stepLabel, { color: mutedColor }]}>{t('register.stepLabel', { step })}</Text>
+            <Text style={[styles.title, { color: titleColor }]}>{t(`register.stepTitles.${step}`)}</Text>
+            <Text style={[styles.subtitle, { color: mutedColor }]}>{t(`register.stepSubtitles.${step}`)}</Text>
           </View>
 
           {(authError?.length > 0 || localError.length > 0) && (
-            <View style={styles.errorCard}>
+            <View style={[styles.errorCard, { backgroundColor: errorBg }]}>
               <Text style={styles.error}>{authError || localError}</Text>
             </View>
           )}
 
           {/* ── Étape 1 : Compte ── */}
           {step === 1 && (
-            <View style={styles.sectionCard}>
+            <View style={[styles.sectionCard, { backgroundColor: surface, borderColor: border }]}> 
               <Form.Input
                 label={t('register.fields.email')}
                 placeholder={t('register.fields.emailPlaceholder')}
@@ -229,7 +237,7 @@ export default function RegistrationScreen() {
 
           {/* ── Étape 2 : Informations de base ── */}
           {step === 2 && (
-            <View style={styles.sectionCard}>
+            <View style={[styles.sectionCard, { backgroundColor: surface, borderColor: border }]}> 
               <Form.Input
                 label={t('register.fields.lastName')}
                 placeholder={t('register.fields.lastNamePlaceholder')}
@@ -244,7 +252,7 @@ export default function RegistrationScreen() {
                 onChangeText={setFirstName}
                 error={undefined}
               />
-              <Text style={styles.sectionTitle}>{t('register.fields.birthDate')}</Text>
+              <Text style={[styles.sectionTitle, { color: mutedColor }]}>{t('register.fields.birthDate')}</Text>
               <Form.DatePicker
                 date={birthDate}
                 onSelect={(d: Date) => setBirthDate(d)}
@@ -262,8 +270,8 @@ export default function RegistrationScreen() {
 
           {/* ── Étape 3 : Profil sportif ── */}
           {step === 3 && (
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionTitle}>{t('register.fields.country')}</Text>
+            <View style={[styles.sectionCard, { backgroundColor: surface, borderColor: border }]}> 
+              <Text style={[styles.sectionTitle, { color: mutedColor }]}>{t('register.fields.country')}</Text>
               <Dropdown
                 data={COUNTRIES}
                 placeholder={t('register.fields.countryPlaceholder')}
@@ -293,13 +301,13 @@ export default function RegistrationScreen() {
                 error={undefined}
                 keyboardType="numeric"
               />
-              <Text style={styles.sectionTitle}>{t('register.fields.goal')}</Text>
+              <Text style={[styles.sectionTitle, { color: mutedColor }]}>{t('register.fields.goal')}</Text>
               <Dropdown
                 data={goalOptions.map(o => ({ key: o, value: o }))}
                 placeholder={t('register.fields.goalPlaceholder')}
                 onSelect={(val: string) => setGoal(val)}
               />
-              <Text style={styles.sectionTitle}>{t('register.fields.pathology')}</Text>
+              <Text style={[styles.sectionTitle, { color: mutedColor }]}>{t('register.fields.pathology')}</Text>
               <Dropdown
                 data={pathologyOptions.map(o => ({ key: o, value: o }))}
                 placeholder={t('register.fields.pathologyPlaceholder')}

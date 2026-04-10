@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { VideoRawType } from '@/utils/type-def';
 import { _get, _post, apiRoutes } from '@/services/api';
 import Colors from '@/constants/Colors';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useColorScheme } from 'react-native';
 import { useAuth } from '@/contexts/authContext';
 import Player1 from '@/components/domains/videos/Player1';
 
@@ -18,6 +18,10 @@ export default function VideoPlayerScreen() {
 
   const [loading, isLoading] = useState<boolean>(false);
   const [video, setVideo] = useState<VideoRawType>({} as VideoRawType);
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const pageBg = isDark ? Colors.black : '#0f1115';
+  const border = isDark ? '#2A2E34' : '#23262b';
   const controller = new AbortController();
 
   const _fetch = async () => {
@@ -60,13 +64,15 @@ export default function VideoPlayerScreen() {
 
     navigation.setOptions({ 
       title: null,
+      headerStyle: { backgroundColor: pageBg },
+      headerTintColor: Colors.white,
     });
 
     _fetch();
 
     // return () => controller.abort()
  
-  }, [navigation]);
+  }, [navigation, pageBg]);
   
 
   if(loading && video === undefined) {
@@ -74,8 +80,8 @@ export default function VideoPlayerScreen() {
   }
 
   return (
-    <FlexContainer color={Colors.black}>
-      <View style={styles.playerContainer}>
+    <FlexContainer color={pageBg}>
+      <View style={[styles.playerContainer, { borderColor: border }]}> 
         <Player1 {...video} />
       </View>
     </FlexContainer>
@@ -94,7 +100,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: Colors.black,
     borderWidth: 1,
-    borderColor: '#23262b',
   },
 
   pressable : {

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { VideoRawType } from '@/utils/type-def';
 import { _get, apiRoutes } from '@/services/api';
 import Colors from '@/constants/Colors';
-import { StyleSheet, View, Text, Pressable,} from 'react-native';
+import { StyleSheet, View, Text, Pressable, useColorScheme } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { Video } from '@/components/domains/videos';
 import axios from 'axios';
@@ -17,6 +17,12 @@ export default function VideoItemScreen() {
 
   const [video, setVideo] = useState<VideoRawType>({} as VideoRawType)
   const [loading, isLoading] = useState<boolean>(false)
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const pageBg = isDark ? Colors.dark.background : Colors.light.background;
+  const surface = isDark ? '#121418' : Colors.white;
+  const border = isDark ? '#2A2E34' : '#eceef2';
+  const text = isDark ? Colors.white : Colors.black;
   const controller = new AbortController();
 
   const _fecth = () => {
@@ -42,12 +48,12 @@ export default function VideoItemScreen() {
     navigation.setOptions({ 
       title: video.designation,
       headerRight: () => (
-        <Pressable style={styles.pressable} onPress={_fecth}>
+        <Pressable style={[styles.pressable, { backgroundColor: isDark ? '#1B2026' : Colors.lightColor, borderColor: border }]} onPress={_fecth}>
             {({ pressed }) => (
               <FontAwesome
                 name="undo"
                 size={25}
-                color={Colors.black}
+                color={text}
                 style={{opacity: pressed ? 0.5 : 1 }}
               />
             )}
@@ -55,15 +61,15 @@ export default function VideoItemScreen() {
       ),
     });
  
-  }, [navigation, video]);
+  }, [navigation, video, isDark]);
 
   if(loading || video.id === undefined) {
     return <Loader visible />
   }
 
   return (
-    <FlexContainer color={Colors.white}>
-      <View style={styles.pageCard}>
+    <FlexContainer color={pageBg}>
+      <View style={[styles.pageCard, { borderColor: border, backgroundColor: surface }]}> 
         <Video {...video}  />
       </View>
     </FlexContainer>
@@ -82,15 +88,18 @@ const styles = StyleSheet.create({
     justifyContent:'center', 
     alignItems: 'center',
     borderRadius: 18,
-    backgroundColor: Colors.lightColor,
+    borderWidth: 1,
   },
 
   pageCard: {
     flex: 1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#eceef2',
-    backgroundColor: Colors.white,
     overflow: 'hidden',
+    shadowColor: '#111111',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
 });

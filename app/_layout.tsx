@@ -6,11 +6,13 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, StrictMode } from 'react';
+import { useColorScheme } from 'react-native';
 import 'react-native-reanimated';
 // import 'expo-dev-client';   // ❌ retiré pour la build de prod
 // import { FBMessageProvider } from '@/contexts/fbmContext';
 import { AppProvider } from '@/contexts/appContext';
 import { Text } from '@/components/Themed';
+import Colors from '@/constants/Colors';
 
 // Use Firebase notification
 // <FBMessageProvider>
@@ -59,10 +61,31 @@ export default function RootLayout() {
 }
 
 function RootAppLayout() {
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const headerBg = isDark ? '#121418' : Colors.white;
+  const headerBorder = isDark ? '#2A2E34' : '#eceef2';
+  const headerText = isDark ? Colors.white : Colors.darkColor;
+
   return (
     <>
-    <StatusBar style="auto" />
-    <Stack>
+    <StatusBar style={isDark ? 'light' : 'dark'} />
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: headerBg,
+        },
+        headerShadowVisible: true,
+        headerTitleStyle: {
+          color: headerText,
+          fontWeight: '700',
+        },
+        headerTintColor: headerText,
+        contentStyle: {
+          backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+        },
+      }}
+    >
       <Stack.Screen
         name="welcome"
         options={{ headerShown: false, title: 'Bienvenue' }}
@@ -73,11 +96,19 @@ function RootAppLayout() {
       />
       <Stack.Screen
         name="sign-in"
-        options={{ headerShown: true, title: 'Connexion' }}
+        options={{
+          headerShown: true,
+          title: 'Connexion',
+          headerStyle: { backgroundColor: headerBg, borderBottomColor: headerBorder, borderBottomWidth: 1 },
+        }}
       />
       <Stack.Screen
         name="register"
-        options={{ headerShown: true, title: 'Inscription' }}
+        options={{
+          headerShown: true,
+          title: 'Inscription',
+          headerStyle: { backgroundColor: headerBg, borderBottomColor: headerBorder, borderBottomWidth: 1 },
+        }}
       />
       <Stack.Screen
         name="(app)"

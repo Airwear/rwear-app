@@ -15,6 +15,13 @@ export default function IndexScreen() {
   const {  signIn, loading, error, logged } = useAuth();
   const scheme = useColorScheme();
   const bg = scheme === 'dark' ? Colors.dark.background : Colors.light.background;
+  const isDark = scheme === 'dark';
+  const surface = isDark ? '#121418' : Colors.white;
+  const border = isDark ? '#2A2E34' : '#eceef2';
+  const titleColor = isDark ? Colors.white : Colors.darkColor;
+  const mutedColor = isDark ? '#9AA3AD' : Colors.muted;
+  const errorBg = isDark ? '#3A1F24' : '#fdeaea';
+  const infoBg = isDark ? '#1D2D3A' : '#eef7ff';
   const { t } = useTranslation();
   const { label } = useApp();
 
@@ -86,15 +93,15 @@ export default function IndexScreen() {
 
         <ScrollView contentContainerStyle={styles.content}>
 
-            <View style={styles.headerCard}>
-              <Text style={styles.title}>{t('signIn.title')}</Text>
-              <Text style={styles.subtitle}>{t('signIn.subtitle')}</Text>
+            <View style={[styles.headerCard, { backgroundColor: surface, borderColor: border }]}> 
+              <Text style={[styles.title, { color: titleColor }]}>{t('signIn.title')}</Text>
+              <Text style={[styles.subtitle, { color: mutedColor }]}>{t('signIn.subtitle')}</Text>
             </View>
 
-            {error.length > 0 && <View style={styles.errorCard}><Title text={error} color={Colors.danger} size={15} /></View>}
-            {info.length > 0 && <View style={styles.infoCard}><Title text={info} color={Colors.primary} size={14} /></View>}
+            {error.length > 0 && <View style={[styles.errorCard, { backgroundColor: errorBg }]}><Title text={error} color={Colors.danger} size={15} /></View>}
+            {info.length > 0 && <View style={[styles.infoCard, { backgroundColor: infoBg }]}><Title text={info} color={Colors.primary} size={14} /></View>}
 
-            <View style={styles.formCard}>
+            <View style={[styles.formCard, { backgroundColor: surface, borderColor: border }]}> 
 
             <Form.Input 
               label={label.user.email} 
@@ -173,13 +180,11 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: Colors.darkColor,
     fontSize: 22,
     fontWeight: '700',
   },
 
   subtitle: {
-    color: Colors.muted,
     fontSize: 13,
     marginTop: 4,
     lineHeight: 18,

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, BackHandler, TouchableOpacity, ActivityIndicator, Text, I18nManager } from 'react-native';
+import { View, StyleSheet, BackHandler, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
 import Video from 'react-native-video';
 import GoogleCast, { CastButton, CastMiniController, CastState } from 'react-native-google-cast';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,16 +18,24 @@ export default function VideoPlayer({ route, navigation }: Props) {
   const [casting, setCasting] = useState(false);
   const [paused, setPaused] = useState(false);
 
+  const handleGoBack = React.useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate('Home');
+  }, [navigation]);
+
   // 🔹 Gestion du bouton retour Android
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        navigation.goBack();
+        handleGoBack();
         return true;
       };
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
-      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [navigation])
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [handleGoBack])
   );
 
   // 🔹 Gestion du Cast
@@ -110,6 +118,9 @@ export default function VideoPlayer({ route, navigation }: Props) {
       />
       {loading && <View style={styles.loader}><ActivityIndicator color="#fff" size="large" /></View>}
       {error && <View style={styles.errorBanner}><Text style={styles.errorText}>{error}</Text></View>}
+      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+        <Text style={styles.backButtonText}>Retour</Text>
+      </TouchableOpacity>
       <View style={styles.overlayButtons}>
         <CastButton accessibilityLabel="Ouvrir Cast" style={styles.castButton} />
         {!casting && (
@@ -132,6 +143,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  backButton: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  backButtonText: { color: '#fff', fontWeight: '600' },
   overlayButtons: { position: 'absolute', top: 14, right: 14, flexDirection: 'row', gap: 10, alignItems: 'center' },
   castButton: { width: 30, height: 30, tintColor: 'white' },
   actionBtn: { backgroundColor: 'rgba(0,0,0,0.6)', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20 },

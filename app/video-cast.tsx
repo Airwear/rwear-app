@@ -1,9 +1,9 @@
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, I18nManager } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, I18nManager, useColorScheme } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { CastButton, CastState } from 'react-native-google-cast';
-import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useCasting } from '../hooks/useCasting';
 import Colors from '@/constants/Colors';
@@ -11,6 +11,13 @@ import Colors from '@/constants/Colors';
 export default function VideoCastScreen() {
   const params = useLocalSearchParams();
   const videoRef = useRef<Video>(null);
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const pageBg = isDark ? '#0f0f10' : Colors.lightColor;
+  const surface = isDark ? '#121418' : '#ffffff';
+  const text = isDark ? Colors.white : Colors.darkColor;
+  const border = isDark ? '#2A2E34' : '#eceef2';
+  const castFabBg = isDark ? 'rgba(0,0,0,0.35)' : 'rgba(17,17,17,0.28)';
   const { castState, isCasting, isLoading, error, startCasting, stopCasting } = useCasting(
     params.videoUrl as string,
     { title: params.title as string, thumbnail: params.thumbnail as string }
@@ -29,9 +36,9 @@ export default function VideoCastScreen() {
   }, [isCasting]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: pageBg }]}> 
       <Stack.Screen options={{ title: 'Cast Video' }} />
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={styles.videoContainer}>
         <Video
           ref={videoRef}
@@ -47,18 +54,19 @@ export default function VideoCastScreen() {
           importantForAccessibility="yes"
           style={[
             styles.castIcon,
+            { backgroundColor: castFabBg },
             I18nManager.isRTL ? styles.castIconRtl : styles.castIconLtr,
           ]}
         />
       </View>
-      <View style={styles.castControlsContainer}>
-        <Text style={styles.castStatus}>
+      <View style={[styles.castControlsContainer, { backgroundColor: surface, borderColor: border }]}> 
+        <Text style={[styles.castStatus, { color: text }]}>
           {castState === CastState.NOT_CONNECTED && 'Non connecté'}
           {castState === CastState.CONNECTING && 'Connexion en cours...'}
           {castState === CastState.CONNECTED && !isCasting && 'Connecté'}
           {castState === CastState.CONNECTED && isCasting && 'Casting en cours'}
         </Text>
-        {isLoading && <ActivityIndicator size="large" color="#0066cc" accessibilityLabel="Chargement cast" />}
+        {isLoading && <ActivityIndicator size="large" color={Colors.primary} accessibilityLabel="Chargement cast" />}
         {!isLoading && (
           <View style={styles.buttonContainer}>
             {!isCasting ? (
@@ -79,7 +87,7 @@ export default function VideoCastScreen() {
                 accessibilityLabel="Arrêter casting Chromecast"
               >
                 <Ionicons name="stop-circle" size={24} color="white" />
-                <Text style={styles.buttonText}>Arrêter le Cast</Text>
+                <Text style={styles.buttonText}>Arreter le Cast</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -90,19 +98,19 @@ export default function VideoCastScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f10' },
+  container: { flex: 1 },
   videoContainer: { flex: 1 },
   videoPlayer: { flex: 1 },
   castControlsContainer: {
     padding: 20,
     alignItems: 'center',
     minHeight: 190,
-    backgroundColor: '#ffffff',
+    borderWidth: 1,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     marginTop: -8,
   },
-  castStatus: { fontSize: 15, marginBottom: 18, textAlign: 'center', color: Colors.darkColor, fontWeight: '600' },
+  castStatus: { fontSize: 15, marginBottom: 18, textAlign: 'center', fontWeight: '600' },
   buttonContainer: { width: '100%', alignItems: 'center' },
   castButton: {
     flexDirection: 'row',
@@ -124,7 +132,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     tintColor: 'white',
-    backgroundColor: 'rgba(0,0,0,0.35)',
     borderRadius: 20,
     padding: 8,
   },
