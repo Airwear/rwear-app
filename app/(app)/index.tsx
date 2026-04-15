@@ -63,9 +63,6 @@ export default function IndexScreen({navigation}: any) {
             <Text style={[styles.welcomeText, { color: muted }]}>{label?.navigation?.home || 'Accueil'}</Text>
             <UserHeader userName={authData?.username?.toLocaleUpperCase()} />
             <Text style={[styles.heroDescription, { color: muted }]}>Explore les categories, choisis ta seance et caste en un geste.</Text>
-            <View style={[styles.premiumTag, { borderColor: border, backgroundColor: pageBg }]}> 
-              <Text style={[styles.premiumTagText, { color: text }]}>Selection premium</Text>
-            </View>
           </View>
           <View style={[styles.castButtonContainer, { backgroundColor: pageBg, borderColor: border }]}>
             <CastButton

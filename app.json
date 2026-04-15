@@ -45,6 +45,7 @@
       "@react-native-community/datetimepicker"
     ],
     "extra": {
+      "EXPO_PUBLIC_API_URL": "https://rwear-sport.octet-group.org/api",
       "eas": {
         "projectId": "768bf314-3231-4f48-ac91-e4afb1acc830"
       }

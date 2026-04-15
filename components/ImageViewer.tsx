@@ -1,7 +1,9 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import { StyleSheet, Image, View, Platform, useColorScheme } from 'react-native';
 
-export default function ImageViewer({ placeholderImageSource, width = '100%', height= 100, bottomRadius = false}: any) {
+export default function ImageViewer({ placeholderImageSource, width = '100%', height= 100, bottomRadius = false, isLogo = false}: any) {
   
+  const isDark = useColorScheme() === 'dark';
+
   let variants: any = {
     width: width, 
     height: height
@@ -15,7 +17,17 @@ export default function ImageViewer({ placeholderImageSource, width = '100%', he
     }
   }
 
-  return <Image source={placeholderImageSource} style={[styles.image, {...variants}]} />;
+  const img = <Image source={placeholderImageSource} style={[styles.image, {...variants}]} />;
+
+  if (isLogo && isDark) {
+    return (
+      <View style={[styles.logoWrapper, { width: width, height: height }]}>
+        {img}
+      </View>
+    );
+  }
+
+  return img;
 }
 
 const styles = StyleSheet.create({
@@ -24,5 +36,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     resizeMode: 'contain',
     alignSelf: 'center',
+  },
+  logoWrapper: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    alignSelf: 'center',
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

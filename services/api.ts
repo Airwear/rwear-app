@@ -2,8 +2,8 @@ import axios from "axios"
 
 // Domaine API principal (modifiable via variable d'environnement Expo)
 const defaultApiHost = 'https://rwear-sport.octet-group.org/api';
-// Domaine web (pages, policy, CGU, map) – ajuster si nécessaire
-const baseRoute: string = 'https://optikar.octet-group.org';
+// Domaine web principal aligné sur le serveur RWear
+const baseRoute: string = 'https://rwear-sport.octet-group.org';
 
 // Construire correctement les URLs (avant il y avait une concat invalide)
 const URL_POLICY = 'https://rwear-sport.octet-group.org/policy';
@@ -77,11 +77,25 @@ axiosInstance.interceptors.response.use(
   error => {
     let extractedMessage = 'Erreur réseau';
     if (error.response) {
-      extractedMessage = error.response.data?.message || `HTTP ${error.response.status}`;
+      const status = error.response.status;
+      if (status === 403) {
+        extractedMessage = "Acces API refuse (HTTP 403). Verifiez la configuration serveur (WAF/Firewall).";
+      } else {
+        extractedMessage = error.response.data?.message || `HTTP ${status}`;
+      }
       if (__DEV__) console.error('[API][ERR][RESP]', error.response.status, extractedMessage);
     } else if (error.request) {
       if (__DEV__) console.error('[API][ERR][NO_RESP]', error.message);
-      extractedMessage = 'Serveur injoignable';
+      const rawMessage = String(error?.message || '').toLowerCase();
+      if (rawMessage.includes('ssl') || rawMessage.includes('certificate') || rawMessage.includes('cert')) {
+        extractedMessage = 'Connexion HTTPS impossible: certificat serveur non valide.';
+      } else if (rawMessage.includes('timeout')) {
+        extractedMessage = 'Delai depasse: le serveur ne repond pas.';
+      } else if (rawMessage.includes('network') || rawMessage.includes('host') || rawMessage.includes('name')) {
+        extractedMessage = 'Serveur injoignable (reseau ou DNS).';
+      } else {
+        extractedMessage = 'Serveur injoignable';
+      }
     } else {
       if (__DEV__) console.error('[API][ERR][CONF]', error.message);
       extractedMessage = error.message;

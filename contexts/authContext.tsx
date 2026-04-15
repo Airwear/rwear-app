@@ -17,9 +17,16 @@ function resolveEmailVerified(payload: any): boolean {
   const rawVerified = payload?.email_verified ?? payload?.user?.email_verified;
   if (typeof rawVerified === 'boolean') return rawVerified;
   if (rawVerified === 1 || rawVerified === '1' || rawVerified === 'true') return true;
+  if (rawVerified === 0 || rawVerified === '0' || rawVerified === 'false') return false;
 
   const verifiedAt = payload?.email_verified_at ?? payload?.user?.email_verified_at;
-  return Boolean(verifiedAt);
+  if (verifiedAt !== undefined && verifiedAt !== null && verifiedAt !== '') {
+    return true;
+  }
+
+  // Si l'API ne renvoie pas explicitement l'état de vérification,
+  // on n'empêche pas l'accès à l'application après connexion réussie.
+  return true;
 }
 
 // @ts-ignore
@@ -65,6 +72,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
         setAuthData(_authData);
         // Injecte le token sauvegardé s'il existe
         setAuthToken(_authData?.token || _authData?.access_token || _authData?.jwt || _authData?.bearer || _authData?.user?.token);
+        setIsGuest(false);
         isLogged(true);
         setEmailVerified(resolveEmailVerified(_authData));
 
@@ -138,6 +146,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
     }
 
     setAuthData(userData);
+    setIsGuest(false);
     AsyncStorage.setItem(AuthStorageKey, JSON.stringify(userData));
     isLogged(true);
     setEmailVerified(resolveEmailVerified(userData));
@@ -177,7 +186,7 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
   const signOut = async () => {
     setLoading(true);
     setTimeout(async () => {
-      await AsyncStorage.setItem(AuthStorageKey, '');
+      await AsyncStorage.removeItem(AuthStorageKey);
       setAuthToken(undefined);
       setAuthData(undefined);
       isLogged(false);

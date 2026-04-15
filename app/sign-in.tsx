@@ -86,7 +86,7 @@ export default function IndexScreen() {
         placeholderImageSource={icons.logo} 
         width={125}
         height={125}
-
+        isLogo
       />
 
       <View style={styles.container}>

@@ -184,6 +184,7 @@ export default function RegistrationScreen() {
       <Stack.Screen options={{ title: t('register.screenTitle') }} />
 
       <ImageViewer
+        isLogo
         placeholderImageSource={icons.logo}
         width={100}
         height={100}
