@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { VideoRawType } from '@/utils/type-def';
 import { _get, _post, apiRoutes } from '@/services/api';
 import Colors from '@/constants/Colors';
-import { StyleSheet, View, useColorScheme } from 'react-native';
+import { StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { useAuth } from '@/contexts/authContext';
 import Player1 from '@/components/domains/videos/Player1';
 
@@ -17,7 +17,8 @@ export default function VideoPlayerScreen() {
   const {authData} = useAuth()
 
   const [loading, isLoading] = useState<boolean>(false);
-  const [video, setVideo] = useState<VideoRawType>({} as VideoRawType);
+  const [video, setVideo] = useState<VideoRawType | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
   const pageBg = isDark ? Colors.black : '#0f1115';
@@ -28,16 +29,19 @@ export default function VideoPlayerScreen() {
     
     let url = apiRoutes.trainings + '/' + slug;
     isLoading(true);
+    setLoadError(null);
 
     _get(url, controller, {})
         .then(response => {
           console.log('Video fetched from backend:', response.data);
           console.log('Video URL:', response.data.url);
           console.log('Video format:', typeof response.data.url);
-          setVideo(response['data']);
+          setVideo(response?.data ?? null);
         })
         .catch(error => {
           console.log('error', error.message)
+          setVideo(null);
+          setLoadError('Impossible de charger cette vidéo pour le moment.');
         })
         .finally(() => {
 
@@ -70,13 +74,24 @@ export default function VideoPlayerScreen() {
 
     _fetch();
 
-    // return () => controller.abort()
+    return () => controller.abort()
  
   }, [navigation, pageBg]);
   
 
-  if(loading && video === undefined) {
+  if (loading) {
     return <Loader visible />
+  }
+
+  if (!video?.url) {
+    return (
+      <FlexContainer color={pageBg}>
+        <View style={[styles.playerContainer, styles.emptyState, { borderColor: border }]}> 
+          <Text style={[styles.emptyTitle, { color: Colors.white }]}>Vidéo indisponible</Text>
+          <Text style={[styles.emptyText, { color: '#c7cbd1' }]}>{loadError || 'Aucune source vidéo valide n’a été trouvée.'}</Text>
+        </View>
+      </FlexContainer>
+    );
   }
 
   return (
@@ -107,5 +122,23 @@ const styles = StyleSheet.create({
     height: 30, 
     justifyContent:'center', 
     alignItems: 'center'
+  },
+
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+
+  emptyText: {
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

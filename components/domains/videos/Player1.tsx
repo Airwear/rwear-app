@@ -1,216 +1,188 @@
-import { useEvent, useEventListener  } from 'expo';
+import { useEventListener } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { StyleSheet, View, Button, useWindowDimensions, SafeAreaView } from 'react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Button, SafeAreaView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { VideoRawType } from '@/utils/type-def';
-import Loader from '@/components/Loader';
-import * as ScreenOrientation from 'expo-screen-orientation';
 import { CastButton, CastContext } from 'react-native-google-cast';
+import { resolvedBaseURL } from '@/services/api';
+import { useAuth } from '@/contexts/authContext';
+
+const getContentType = (url?: string) => {
+  const value = (url || '').toLowerCase();
+
+  if (value.endsWith('.m3u8') || value.includes('m3u8')) {
+    return 'application/x-mpegURL';
+  }
+
+  if (value.endsWith('.mpd') || value.includes('manifest.mpd') || value.includes('/dash')) {
+    return 'application/dash+xml';
+  }
+
+  return 'video/mp4';
+};
 
 export default function Player1(video: VideoRawType) {
-
   const router = useRouter();
+  const { authData } = useAuth();
   const dimensions = useWindowDimensions();
-  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
-  
-  const player = useVideoPlayer(video.url, player => {
-    player.loop = false;
-    player.currentTime = 0;
-    player.play();
-    player.timeUpdateEventInterval = 5;
-    player.showNowPlayingNotification = true;
-  });
-
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>(dimensions.width > dimensions.height ? 'landscape' : 'portrait');
   const [status, setStatus] = useState<string>('loading');
-  const [currentTimer, setCurrentTimer] = useState<number>(0);
-  let videoViewRef = useRef<any>(null);
+  const [playerError, setPlayerError] = useState<string | null>(null);
 
-  const READY_TO_PLAY = "readyToPlay"
+  const baseWebUrl = useMemo(() => resolvedBaseURL.replace(/\/api\/?$/, ''), []);
+  const token = (authData as any)?.token || (authData as any)?.access_token || (authData as any)?.jwt || (authData as any)?.bearer || (authData as any)?.user?.token;
 
-  const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: false });
+  const normalizedUrl = useMemo(() => {
+    const raw = (video.url || '').trim();
+
+    if (!raw) {
+      return '';
+    }
+
+    const absolute = /^https?:\/\//i.test(raw)
+      ? raw
+      : `${baseWebUrl}${raw.startsWith('/') ? '' : '/'}${raw}`;
+
+    return encodeURI(absolute);
+  }, [baseWebUrl, video.url]);
+
+  const requestHeaders = useMemo(() => {
+    const headers: Record<string, string> = {
+      Accept: '*/*',
+      Referer: `${baseWebUrl}/`,
+      Origin: baseWebUrl,
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+  }, [baseWebUrl, token]);
+
+  const player = useVideoPlayer(normalizedUrl ? { uri: normalizedUrl, headers: requestHeaders } : null, instance => {
+    instance.loop = false;
+    instance.currentTime = 0;
+    instance.play();
+    instance.timeUpdateEventInterval = 0.5;
+    instance.showNowPlayingNotification = true;
+  });
 
   useEventListener(player, 'statusChange', ({ status, error }) => {
-    console.log('Player status changed: ', status);
-    setStatus(status)
+    setStatus(status);
+
+    if (error) {
+      const rawMessage = typeof error === 'string' ? error : (error as any)?.message || 'Impossible de lire cette vidéo.';
+      setPlayerError(rawMessage.includes('403') ? 'Accès refusé à la source vidéo. Nouvelle requête sécurisée appliquée.' : rawMessage);
+      return;
+    }
+
+    if (status === 'readyToPlay') {
+      setPlayerError(null);
+    }
   });
 
-  useEventListener(player, 'timeUpdate', (payload) => {
-    setCurrentTimer(payload.currentTime)
-    console.log('Player timeUpdate changed: ', payload.currentTime);
-  });
-
-  // Détecter changements d'orientation
   useEffect(() => {
     const isLandscape = dimensions.width > dimensions.height;
-    const newOrientation = isLandscape ? 'landscape' : 'portrait';
-    if (newOrientation !== orientation) {
-      setOrientation(newOrientation);
-    }
-  }, [dimensions.width, dimensions.height, orientation]);
-
-  async function applyLandscape() {
-    try {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-      console.log('Orientation paysage appliquée');
-    } catch (err) {
-      console.warn('Erreur orientation paysage:', err);
-    }
-  }
-
-  async function applyPortrait() {
-    try {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-      console.log('Orientation portrait appliquée');
-    } catch (err) {
-      console.warn('Erreur orientation portrait:', err);
-    }
-  }
-
-  const launchFullscreen = async () => {
-
-    if(status === READY_TO_PLAY && videoViewRef.current) {
-      try {
-          console.log('status === READY_TO_PLAY && videoViewRef.current');
-          await videoViewRef.current.enterFullscreen();
-      } catch (err) {
-          console.warn('Erreur lors du passage automatique en plein écran:', err);
-      }
-    }
-
-  };
-
-  const handleExitFullscreen = useCallback(() => {
-    console.log('Exiting fullscreen');
-    applyPortrait().catch(err => console.warn('Erreur orientation:', err));
-  }, []);
-
-  const handlePlayerError = useCallback((error: any) => {
-    console.error('Player error:', error);
-  }, []);
-
-  useEffect(() => {
-    if (status === READY_TO_PLAY) {
-      applyLandscape().catch(err => console.warn('Erreur landscape:', err));
-      launchFullscreen();
-    }
-  }, [status])
+    setOrientation(isLandscape ? 'landscape' : 'portrait');
+  }, [dimensions.width, dimensions.height]);
 
   useFocusEffect(
     useCallback(() => {
-      console.log('useFocusEffect: écran vidéo monté')
       return () => {
-        console.log('useFocusEffect: nettoyage écran vidéo')
-        
-        if (player) {
-          try {
-            player.pause();
-            console.log('Player mis en pause');
-          } catch (err) {
-            console.warn('Erreur pause player:', err);
-          }
+        try {
+          player.pause();
+        } catch {
+          // Keep navigation stable even if player cleanup fails.
         }
-        
-        applyPortrait().catch(err => console.warn('Erreur orientation:', err));
       };
     }, [player])
   );
 
   const handleBackPress = useCallback(() => {
-    if (player) {
+    try {
       player.pause();
+    } catch {
+      // No-op.
     }
-    applyPortrait().catch(err => console.warn('Erreur orientation:', err));
+
     router.back();
   }, [player, router]);
 
-  // Configure Cast avec l'URL de la vidéo
   useEffect(() => {
-    if (video.url) {
-      try {
-        // Prepare casting metadata with audio configuration
-        CastContext.setSharedMediaInfo({
-          mediaInfo: {
-            contentId: video.url,
-            contentType: 'application/x-mpegURL',
-            streamType: 'BUFFERED',
-            metadata: {
-              type: 0, // GENERIC
-              metadataType: 0,
-              title: video.designation || 'Video',
-              subtitle: video.category_name || 'AIRWEAR',
-              images: video.cover ? [{ url: video.cover }] : [],
-            },
-            customData: {
-              autoPlay: true,
-              preloadedContent: {
-                mediaUrl: video.url,
-              },
-            },
-            // Ensure audio is included
-            tracks: [
-              {
-                trackId: 1,
-                type: 'TEXT',
-                subtype: 'SUBTITLE',
-                name: 'English',
-                language: 'en-US',
-              },
-            ],
-          },
-        });
-        console.log('Cast config set for:', video.url);
-      } catch (err) {
-        console.log('Cast config info:', err);
-      }
+    if (!normalizedUrl) {
+      return;
     }
-  }, [video.url, video.designation, video.category_name, video.cover]);
 
-  if(status !== READY_TO_PLAY) {
-    return <Loader visible />
-  }
+    try {
+      CastContext.setSharedMediaInfo({
+        mediaInfo: {
+          contentId: normalizedUrl,
+          contentType: getContentType(normalizedUrl),
+          streamType: 'BUFFERED',
+          metadata: {
+            type: 0,
+            metadataType: 0,
+            title: video.designation || 'Video',
+            subtitle: video.category_name || 'AIRWEAR',
+            images: video.cover ? [{ url: video.cover }] : [],
+          },
+          customData: {
+            autoPlay: true,
+            authToken: token,
+            requestHeaders,
+            preloadedContent: {
+              mediaUrl: normalizedUrl,
+            },
+          },
+        },
+      });
+    } catch {
+      // Keep playback functional if cast metadata cannot be prepared.
+    }
+  }, [normalizedUrl, requestHeaders, token, video.designation, video.category_name, video.cover]);
 
-  const castButtonStyle = orientation === 'landscape' 
-    ? styles.castButtonLandscape 
-    : styles.castButtonPortrait;
+  const castButtonStyle = orientation === 'landscape' ? styles.castButtonLandscape : styles.castButtonPortrait;
+  const showLoader = !playerError && status !== 'readyToPlay';
 
   return (
     <SafeAreaView style={styles.screenContainer}>
-      {/* Cast Button - Fixed overlay OUTSIDE the video container */}
       <View style={[styles.castButtonWrapper, castButtonStyle]} pointerEvents="box-none">
-        <CastButton
-          style={styles.castButton}
-          tintColor="white"
-        />
+        <CastButton style={styles.castButton} tintColor="white" />
       </View>
 
-      {/* Video Player Container */}
       <View style={styles.contentContainer}>
-        <VideoView 
-          style={styles.video} 
-          player={player} 
-          allowsFullscreen 
+        <VideoView
+          style={styles.video}
+          player={player}
+          allowsFullscreen
           allowsPictureInPicture
           nativeControls={true}
-          //@ts-ignore
-          ref={videoViewRef}
-         />
-        {orientation === 'portrait' && (
-          <View style={styles.controlsContainer}>
-            <Button
-              title="Retour"
-              onPress={handleBackPress}
-              color="#007AFF"
-            />
+          contentFit="contain"
+        />
+
+        {showLoader && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color="#ffffff" />
           </View>
         )}
+
+        {!!playerError && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{playerError}</Text>
+          </View>
+        )}
+
+        <View style={styles.controlsContainer}>
+          <Button title="Retour" onPress={handleBackPress} color="#007AFF" />
+        </View>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-
   screenContainer: {
     flex: 1,
     position: 'relative',
@@ -219,16 +191,38 @@ const styles = StyleSheet.create({
 
   contentContainer: {
     flex: 1,
-    padding: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 0,
     backgroundColor: '#000',
   },
 
   video: {
     width: '100%',
     height: '100%',
+  },
+
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.22)',
+  },
+
+  errorBanner: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 78,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(160, 18, 18, 0.88)',
+  },
+
+  errorText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '600',
   },
 
   castButtonWrapper: {
@@ -240,7 +234,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
     borderRadius: 28,
     zIndex: 9999,
-    elevation: 1000, // For Android - ensures it's on top
+    elevation: 1000,
   },
 
   castButtonPortrait: {
@@ -271,5 +265,4 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
-  
 });

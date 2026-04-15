@@ -46,11 +46,18 @@ export default function VideoPreviewScreen() {
       return;
     }
 
+    const value = video.url.toLowerCase();
+    const contentType = value.endsWith('.m3u8') || value.includes('m3u8')
+      ? 'application/x-mpegURL'
+      : value.endsWith('.mpd') || value.includes('manifest.mpd') || value.includes('/dash')
+        ? 'application/dash+xml'
+        : 'video/mp4';
+
     try {
       CastContext.setSharedMediaInfo({
         mediaInfo: {
           contentId: video.url,
-          contentType: 'application/x-mpegURL',
+          contentType,
           streamType: 'BUFFERED',
           metadata: {
             type: 0,

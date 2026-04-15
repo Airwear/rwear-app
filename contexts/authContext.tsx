@@ -29,6 +29,21 @@ function resolveEmailVerified(payload: any): boolean {
   return true;
 }
 
+function toSafeUserError(error: any, fallback = 'Une erreur est survenue.') {
+  const raw = typeof error === 'string'
+    ? error
+    : error?.response?.data?.message || error?.friendlyMessage || error?.message || fallback;
+
+  const text = String(raw || fallback).trim();
+  const lower = text.toLowerCase();
+
+  if (!text || lower === 'undefined' || lower.includes('no query results for model')) {
+    return 'Impossible de charger ou mettre à jour votre profil. Merci de vous reconnecter.';
+  }
+
+  return text;
+}
+
 // @ts-ignore
 const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
@@ -155,6 +170,13 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
   const update = async (data: AuthDataType) => {
 
+    const userSlug = data?.slug || authData?.slug || (authData as any)?.user?.slug;
+
+    if (!userSlug || userSlug === 'undefined') {
+      setError('Impossible de mettre à jour le profil : identifiant utilisateur manquant.');
+      return Promise.resolve(null);
+    }
+
     setUpdating(true);
 
     setError('');
@@ -163,23 +185,24 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
     console.log('data', data)
 
-    _put(apiRoutes.editUser + '/' + data.slug, {...data}, controller)
+    _put(apiRoutes.editUser + '/' + userSlug, {...data, slug: userSlug}, controller)
         .then(response => {
           
-          const {message, data, error} = response;
+          const {message, data: updatedData, error} = response || {};
           
           if(error) {
-            setError(message)
+            setError(toSafeUserError(message, 'Impossible de mettre à jour le profil pour le moment.'))
           } else {
 
-            setMessage(message);
-            setAuthData(data);
+            const nextAuthData = updatedData || { ...(authData as any), ...data, slug: userSlug };
+            setMessage((message && String(message).trim() && String(message).trim() !== 'undefined') ? String(message) : 'Profil mis à jour.');
+            setAuthData(nextAuthData);
 
-            AsyncStorage.setItem(AuthStorageKey, JSON.stringify(data));
+            AsyncStorage.setItem(AuthStorageKey, JSON.stringify(nextAuthData));
 
           }
         })
-        .catch(error => setError(error.response.data.message as string))
+        .catch(error => setError(toSafeUserError(error, 'Impossible de mettre à jour le profil pour le moment.')))
         .finally(() => setUpdating(false))
   };
 

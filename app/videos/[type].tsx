@@ -32,11 +32,20 @@ export default function VideoTypeListScreen() {
     isLoading(true);
 
     _get(url, controller)
-    .then(response => {
-        //console.log('response', response.data)
-        setList(response.data);
-        setTitle(response.data[0]?.category_name);
-    }).finally(() => isLoading(false))
+      .then(response => {
+        const items = Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response)
+            ? response
+            : [];
+        setList(items);
+        setTitle(items[0]?.category_name || 'Vidéos');
+      })
+      .catch(() => {
+        setList([]);
+        setTitle('Vidéos');
+      })
+      .finally(() => isLoading(false))
   }
 
     useEffect( () => {

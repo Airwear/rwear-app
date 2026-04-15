@@ -15,10 +15,12 @@ export default function EditUserForm () {
     //const {token} = useFBM()
     const token = 'no-fire-base';
 
+    const currentAuth: any = authData;
+
     const [values, setValues] = useState<any>({
-        email: authData?.email,
-        username: authData?.username,
-        phone: authData?.phone,
+        email: authData?.email ?? '',
+        username: authData?.username ?? '',
+        phone: authData?.phone ?? '',
     });
 
     const handleChange = (value: string, target : 'email' | 'username' | 'phone') => {
@@ -29,10 +31,10 @@ export default function EditUserForm () {
     }
 
     const _handleSubmit = () => {
-        if(values.email?.length === 0) {
+        if(!values.email?.trim()?.length) {
             return null
         }
-        update({...values, fbm_token: token, id: String(authData?.id), slug: authData?.slug });
+        update({...values, fbm_token: token, id: String(currentAuth?.id || currentAuth?.user?.id || ''), slug: currentAuth?.slug || currentAuth?.user?.slug });
     }
 
     return (

@@ -3,9 +3,9 @@ import { VideoType } from "@/utils/type-def";
 import Colors from "@/constants/Colors";
 import { Link } from "expo-router";
 import Title from "@/components/Title";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Loader from "@/components/Loader";
-import axios from "axios";
+import { _get, apiRoutes } from "@/services/api";
 import { useGuestGuard } from "@/hooks";
 import GuestConversionModal from "@/components/GuestConversionModal";
 
@@ -21,22 +21,33 @@ export default function VideoTypeList() {
     const desc = isDark ? '#D6DBE0' : Colors.darkColor;
     const [list, setList] = useState<VideoType[]>([]);
     const [loading, isLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>('');
     const { isGuest, requireAuth, guestModalVisible, closeGuestModal } = useGuestGuard();
+    const controller = useMemo(() => new AbortController(), []);
 
     const visibleList = isGuest ? list.slice(0, 3) : list;
 
-    useEffect( () => {
-
+    useEffect(() => {
         isLoading(true);
+        setError('');
 
-        axios
-        .get('https://rwear-sport.octet-group.org/api/categories')
-        .then(response => {
-            //console.log('response', response.data.data)
-            setList(response.data.data)
-        }).finally(() => isLoading(false))
+        _get(apiRoutes.categories, controller)
+            .then((response) => {
+                const items = Array.isArray(response?.data)
+                    ? response.data
+                    : Array.isArray(response)
+                      ? response
+                      : [];
+                setList(items);
+            })
+            .catch((err: any) => {
+                setList([]);
+                setError(err?.friendlyMessage || err?.response?.data?.message || 'Impossible de charger les categories video.');
+            })
+            .finally(() => isLoading(false));
 
-    }, [])
+        return () => controller.abort();
+    }, [controller])
 
     const renderItem = ({ item }: any) => (
         <Link
@@ -83,7 +94,15 @@ export default function VideoTypeList() {
     }
 
     if (list.length === 0) {
-        return null;
+        return (
+            <View style={styles.container}>
+                <Title text={title} size={20} weight="bold" push={2} />
+                <Text style={[styles.text, { color: muted }]}>
+                    {error || 'Aucune categorie video disponible pour le moment.'}
+                </Text>
+                <GuestConversionModal visible={guestModalVisible} onClose={closeGuestModal} />
+            </View>
+        );
     }
 
     return (

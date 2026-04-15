@@ -20,6 +20,7 @@ const apiRoutes = {
 
     vehicles: '/vehicles',
     interventions: '/interventions',
+    categories: '/categories',
     trainings: '/trainings',
     policies: baseRoute + '/policies',
     map: baseRoute + '/map',

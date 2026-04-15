@@ -5,16 +5,19 @@ import Colors from "@/constants/Colors";
 
 
 export default function UserInfo(authData: AuthDataType) {
+    const displayName = authData.username || [authData.first_name, authData.last_name].filter(Boolean).join(' ').trim() || 'Mon compte';
+    const displayEmail = authData.email || '';
+
     return (
       <View style={styles.container}>
         <Title
-            text={authData.username as string}
+            text={displayName}
             size={20} 
             weight="bold"
             push={2}
         />
         <Title
-            text={`${authData.email}`}
+            text={displayEmail}
             size={17} 
             color={Colors.muted}
             push={0}
