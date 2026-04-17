@@ -5,26 +5,96 @@ import { router } from "expo-router";
 import { CastContext } from 'react-native-google-cast';
 import { CastButton } from './CastButton';
 import { FontAwesome } from '@expo/vector-icons';
+import { useMemo, useState } from 'react';
+import { resolvedBaseURL } from '@/services/api';
+import { useAuth } from '@/contexts/authContext';
 
 export default function VideoList({list} : {list: VideoRawType[]}) {
     const scheme = useColorScheme();
     const isDark = scheme === 'dark';
     const surface = isDark ? '#121418' : '#ffffff';
     const border = isDark ? '#2A2E34' : '#eceef2';
+    const rowSurface = isDark ? '#1A1F25' : '#EDEDED';
     const text = isDark ? Colors.white : Colors.black;
     const muted = isDark ? '#9AA3AD' : Colors.muted;
     const detail = isDark ? '#D6DBE0' : Colors.darkColor;
+    const baseWebUrl = useMemo(() => resolvedBaseURL.replace(/\/api\/?$/, ''), []);
+    const { authData } = useAuth();
+    const token = (authData as any)?.token || (authData as any)?.access_token || (authData as any)?.jwt || (authData as any)?.bearer || (authData as any)?.user?.token;
 
-    const resolvePreview = (item: VideoRawType) => {
-        if (item.cover && item.cover.trim().length > 0) {
-            return item.cover;
+    const imageHeaders = useMemo(() => {
+        const headers: Record<string, string> = {
+            Accept: '*/*',
+            Referer: `${baseWebUrl}/`,
+            Origin: baseWebUrl,
+        };
+
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
         }
 
-        if (item.url && item.url.toLowerCase().includes('.mp4')) {
-            return item.url.replace(/\.mp4(\?.*)?$/i, '.jpeg$1');
+        return headers;
+    }, [baseWebUrl, token]);
+
+    const toAbsoluteUrl = (rawUrl?: string) => {
+        const value = (rawUrl || '').trim();
+
+        if (!value) {
+            return '';
         }
 
-        return undefined;
+        const absolute = /^https?:\/\//i.test(value)
+            ? value
+            : `${baseWebUrl}${value.startsWith('/') ? '' : '/'}${value}`;
+
+        return encodeURI(absolute);
+    };
+
+    const resolvePreviewCandidates = (item: VideoRawType) => {
+        const anyItem = item as any;
+        const mediaUrl = toAbsoluteUrl(item.url);
+        const directSources = [
+            toAbsoluteUrl(item.cover),
+            toAbsoluteUrl(anyItem.thumbnail),
+            toAbsoluteUrl(anyItem.image),
+            toAbsoluteUrl(anyItem.preview),
+        ].filter(Boolean);
+
+        const derivedSources = mediaUrl && mediaUrl.toLowerCase().includes('.mp4')
+            ? [
+                mediaUrl.replace(/\.mp4(\?.*)?$/i, '.jpg$1'),
+                mediaUrl.replace(/\.mp4(\?.*)?$/i, '.jpeg$1'),
+                mediaUrl.replace(/\.mp4(\?.*)?$/i, '.png$1'),
+                mediaUrl.replace(/\/([^\/?#]+)\.mp4(\?.*)?$/i, '/thumbnail.jpg$2'),
+                mediaUrl.replace(/\/([^\/?#]+)\.mp4(\?.*)?$/i, '/poster.jpg$2'),
+            ]
+            : [];
+
+        return [...new Set([...directSources, ...derivedSources])];
+    };
+
+    const VideoThumb = ({ item }: { item: VideoRawType }) => {
+        const candidates = resolvePreviewCandidates(item);
+        const [imageIndex, setImageIndex] = useState(0);
+        const currentUri = candidates[imageIndex];
+
+        if (currentUri) {
+            return (
+                <Image
+                    style={styles.image}
+                    source={{ uri: currentUri, headers: imageHeaders }}
+                    onError={() => setImageIndex((prev) => prev + 1)}
+                />
+            );
+        }
+
+        return (
+            <View style={[styles.image, styles.imageFallback, { backgroundColor: isDark ? '#1B2026' : '#EEF2F6' }]}>
+                <FontAwesome name="play-circle" size={28} color={Colors.orange} />
+                <Text style={[styles.fallbackText, { color: text }]} numberOfLines={2}>{item.designation}</Text>
+                <Text style={[styles.fallbackSubtext, { color: muted }]} numberOfLines={1}>{item.category_name || 'RWear'}</Text>
+            </View>
+        );
     };
 
     const setCastMedia = (item: VideoRawType) => {
@@ -50,7 +120,7 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
                         metadataType: 0,
                         title: item.designation || 'Video',
                         subtitle: item.category_name || 'AIRWEAR',
-                        images: item.cover ? [{ url: item.cover }] : [],
+                        images: item.cover ? [{ url: toAbsoluteUrl(item.cover) }] : [],
                     },
                     customData: {
                         autoPlay: true,
@@ -66,46 +136,26 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
     };
 
     const renderItem = ({ item }: any) => {
-        const previewUri = resolvePreview(item);
-
         return (
             <Pressable
                 onPress={() => {
+                    const trainingRef = String(item.slug || item.id || '');
+                    if (!trainingRef) {
+                        return;
+                    }
+
                     setCastMedia(item);
-                    router.push({ pathname: '/videos/preview/[slug]', params: { slug: item.slug } });
+                    router.push({ pathname: '/videos/preview/[slug]', params: { slug: trainingRef } });
                 }}
-                style={({ pressed }) => [styles.renderItem, { backgroundColor: surface, borderColor: border, shadowColor: text }, pressed && styles.renderItemPressed]}
+                style={({ pressed }) => [styles.renderItem, { backgroundColor: rowSurface, borderColor: border }, pressed && styles.renderItemPressed]}
             >
                     <View style={styles.previewWrap}>
-                        {previewUri ? (
-                            <Image style={styles.image} source={{uri: previewUri}} />
-                        ) : (
-                            <View style={[styles.image, styles.imageFallback, { backgroundColor: isDark ? '#1B2026' : '#EEF2F6' }]}>
-                                <FontAwesome name="play-circle" size={28} color={Colors.orange} />
-                                <Text style={[styles.fallbackText, { color: text }]}>Aperçu vidéo</Text>
-                            </View>
-                        )}
-                        <View style={[styles.imageGradientTop, { backgroundColor: isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)' }]} />
-                        <View style={styles.playBadge}>
-                            <FontAwesome name="play" size={12} color="#fff" />
-                            <Text style={styles.playBadgeText}>Voir</Text>
-                        </View>
-                        <Pressable
-                            style={[styles.castBubble, { borderColor: border, backgroundColor: isDark ? 'rgba(18,20,24,0.78)' : 'rgba(255,255,255,0.9)' }]}
-                            onPress={(event) => {
-                                event.stopPropagation?.();
-                                setCastMedia(item);
-                            }}
-                            onPressIn={() => setCastMedia(item)}
-                        >
-                            <CastButton tintColor={text} />
-                        </Pressable>
+                        <VideoThumb item={item} />
                     </View>
                     <View style={styles.textContainer}>
-                        <Text style={[styles.title, { color: text }]}>{item.designation}</Text>
-                        <Text style={[styles.details, { color: detail }]}>{item.duration_in_text}</Text>
-                        <Text style={[styles.coach, { color: muted }]}>Niveau : {item.level_name}</Text>
-                        <View style={[styles.accentLine, { backgroundColor: Colors.orange }]} />
+                        <Text style={[styles.title, { color: text }]} numberOfLines={1}>{item.designation}</Text>
+                        <Text style={[styles.details, { color: detail }]} numberOfLines={1}>{item.duration_in_text || 'Durée indisponible'}</Text>
+                        <Text style={[styles.coach, { color: muted }]} numberOfLines={1}>Niveau : {item.level_name || 'Intermédiaire'}</Text>
                     </View>
                 </Pressable>
         );
@@ -140,16 +190,17 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 10,
+        paddingHorizontal: 6,
     },
 
     listContainer: {
         paddingBottom: 24,
+        paddingTop: 4,
     },
 
     textContainer: {
         paddingHorizontal: 12,
-        paddingVertical: 10,
+        paddingVertical: 8,
         justifyContent: 'center',
         flex: 1,
     },
@@ -161,107 +212,91 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 14,
+        fontSize: 13,
         marginBottom: 4,
-        fontWeight: 'bold',
+        fontWeight: '800',
         textTransform: 'uppercase',
     },
 
     details: {
-        fontSize: 13,
+        fontSize: 12,
         marginBottom: 3,
     },
 
     coach: {
-        fontSize: 13,
+        fontSize: 12,
     },
 
     renderItem: {
-        minHeight: 118,
+        minHeight: 86,
         flexDirection: 'row',
-        borderRadius: 14,
+        borderRadius: 4,
         overflow: 'hidden',
-        borderWidth: 1,
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 2,
+        borderWidth: 0,
+        alignItems: 'center',
+        backgroundColor: '#EAEAEA',
     },
 
     renderItemPressed: {
-        opacity: 0.92,
-        transform: [{ scale: 0.995 }],
+        opacity: 0.88,
     },
 
     separator: {
-        height: 8,
+        height: 6,
         width: '100%'
     },
 
     previewWrap: {
         position: 'relative',
+        paddingLeft: 8,
     },
 
     image: {
-        width: 138,
-        height: 118,
+        width: 92,
+        height: 58,
         resizeMode: 'cover',
+        backgroundColor: '#D8D8D8',
+        borderRadius: 2,
     },
 
     imageFallback: {
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
-        paddingHorizontal: 8,
+        gap: 3,
+        paddingHorizontal: 6,
     },
 
     fallbackText: {
-        fontSize: 12,
+        fontSize: 8,
         fontWeight: '700',
         textAlign: 'center',
     },
 
+    fallbackSubtext: {
+        fontSize: 8,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginTop: 1,
+    },
+
     imageGradientTop: {
-        ...StyleSheet.absoluteFillObject,
+        display: 'none',
     },
 
     playBadge: {
-        position: 'absolute',
-        left: 8,
-        bottom: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 999,
-        backgroundColor: 'rgba(0,0,0,0.58)',
+        display: 'none',
     },
 
     playBadgeText: {
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: '700',
+        display: 'none',
     },
 
     castBubble: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 34,
-        height: 34,
-        borderRadius: 17,
-        borderWidth: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: 'none',
     },
 
     accentLine: {
-        marginTop: 8,
-        height: 3,
-        width: 34,
-        borderRadius: 999,
-        opacity: 0.9,
+        display: 'none',
     },
 
     emptyState: {

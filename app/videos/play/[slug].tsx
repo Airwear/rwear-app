@@ -33,10 +33,11 @@ export default function VideoPlayerScreen() {
 
     _get(url, controller, {})
         .then(response => {
-          console.log('Video fetched from backend:', response.data);
-          console.log('Video URL:', response.data.url);
-          console.log('Video format:', typeof response.data.url);
-          setVideo(response?.data ?? null);
+          const payload = response?.data ?? response ?? null;
+          console.log('Video fetched from backend:', payload);
+          console.log('Video URL:', payload?.url);
+          console.log('Video format:', typeof payload?.url);
+          setVideo(payload);
         })
         .catch(error => {
           console.log('error', error.message)

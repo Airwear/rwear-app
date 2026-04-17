@@ -1,20 +1,55 @@
 import { ButtonSimple } from '@/components/buttons';
+import { CastButton } from '@/components/domains/videos/CastButton';
 import Colors from '@/constants/Colors';
-import { _get, apiRoutes } from '@/services/api';
+import { useAuth } from '@/contexts/authContext';
+import { _get, apiRoutes, resolvedBaseURL } from '@/services/api';
 import { VideoRawType } from '@/utils/type-def';
+import { useEventListener } from 'expo';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CastContext } from 'react-native-google-cast';
-import { CastButton } from '@/components/domains/videos/CastButton';
+
+const getAbsoluteMediaUrl = (rawUrl: string | undefined, baseWebUrl: string) => {
+  const value = (rawUrl || '').trim();
+
+  if (!value) {
+    return '';
+  }
+
+  const absolute = /^https?:\/\//i.test(value)
+    ? value
+    : `${baseWebUrl}${value.startsWith('/') ? '' : '/'}${value}`;
+
+  return encodeURI(absolute);
+};
+
+const resolvePreviewUri = (item: VideoRawType | null, baseWebUrl: string) => {
+  const cover = getAbsoluteMediaUrl(item?.cover, baseWebUrl);
+
+  if (cover) {
+    return cover;
+  }
+
+  const mediaUrl = getAbsoluteMediaUrl(item?.url, baseWebUrl);
+  if (mediaUrl.toLowerCase().includes('.mp4')) {
+    return mediaUrl.replace(/\.mp4(\?.*)?$/i, '.jpeg$1');
+  }
+
+  return '';
+};
 
 export default function VideoPreviewScreen() {
   const navigation = useNavigation();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const [loading, setLoading] = useState(false);
   const [video, setVideo] = useState<VideoRawType | null>(null);
+  const [previewReady, setPreviewReady] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const controller = useMemo(() => new AbortController(), []);
+  const { authData } = useAuth();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
   const pageBg = isDark ? Colors.dark.background : Colors.light.background;
@@ -22,15 +57,66 @@ export default function VideoPreviewScreen() {
   const border = isDark ? '#2A2E34' : '#eceef2';
   const text = isDark ? Colors.white : Colors.darkColor;
   const muted = isDark ? '#9AA3AD' : Colors.muted;
+  const baseWebUrl = useMemo(() => resolvedBaseURL.replace(/\/api\/?$/, ''), []);
+  const token = (authData as any)?.token || (authData as any)?.access_token || (authData as any)?.jwt || (authData as any)?.bearer || (authData as any)?.user?.token;
+  const previewUrl = useMemo(() => getAbsoluteMediaUrl(video?.url, baseWebUrl), [video?.url, baseWebUrl]);
+  const previewImage = useMemo(() => resolvePreviewUri(video, baseWebUrl), [video, baseWebUrl]);
+
+  const requestHeaders = useMemo(() => {
+    const headers: Record<string, string> = {
+      Accept: '*/*',
+      Referer: `${baseWebUrl}/`,
+      Origin: baseWebUrl,
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+  }, [baseWebUrl, token]);
+
+  const player = useVideoPlayer(previewUrl ? { uri: previewUrl, headers: requestHeaders } : null, instance => {
+    instance.loop = true;
+    instance.muted = true;
+    instance.currentTime = 0;
+    instance.play();
+  });
+
+  useEventListener(player, 'statusChange', ({ status, error }) => {
+    if (error) {
+      const message = typeof error === 'string' ? error : (error as any)?.message || 'Aperçu indisponible pour cette vidéo.';
+      setPreviewReady(false);
+      setPreviewError(message);
+      return;
+    }
+
+    if (status === 'readyToPlay') {
+      setPreviewReady(true);
+      setPreviewError(null);
+    }
+  });
 
   const fetchVideo = async () => {
-    if (!slug) return;
+    if (!slug) {
+      setVideo(null);
+      return;
+    }
+
     setLoading(true);
+    setPreviewReady(false);
+    setPreviewError(null);
     const url = `${apiRoutes.trainings}/${slug}`;
 
     _get(url, controller, {})
-      .then((response) => setVideo(response?.data ?? null))
-      .catch(() => setVideo(null))
+      .then((response) => {
+        const payload = response?.data ?? response ?? null;
+        setVideo(payload);
+      })
+      .catch(() => {
+        setVideo(null);
+        setPreviewError('Impossible de charger cette vidéo pour le moment.');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -42,11 +128,11 @@ export default function VideoPreviewScreen() {
   }, [slug]);
 
   useEffect(() => {
-    if (!video?.url) {
+    if (!previewUrl) {
       return;
     }
 
-    const value = video.url.toLowerCase();
+    const value = previewUrl.toLowerCase();
     const contentType = value.endsWith('.m3u8') || value.includes('m3u8')
       ? 'application/x-mpegURL'
       : value.endsWith('.mpd') || value.includes('manifest.mpd') || value.includes('/dash')
@@ -56,20 +142,22 @@ export default function VideoPreviewScreen() {
     try {
       CastContext.setSharedMediaInfo({
         mediaInfo: {
-          contentId: video.url,
+          contentId: previewUrl,
           contentType,
           streamType: 'BUFFERED',
           metadata: {
             type: 0,
             metadataType: 0,
-            title: video.designation || 'Video',
-            subtitle: video.category_name || 'AIRWEAR',
-            images: video.cover ? [{ url: video.cover }] : [],
+            title: video?.designation || 'Video',
+            subtitle: video?.category_name || 'AIRWEAR',
+            images: previewImage ? [{ url: previewImage }] : [],
           },
           customData: {
             autoPlay: true,
+            authToken: token,
+            requestHeaders,
             preloadedContent: {
-              mediaUrl: video.url,
+              mediaUrl: previewUrl,
             },
           },
         },
@@ -77,7 +165,7 @@ export default function VideoPreviewScreen() {
     } catch {
       // Keep screen functional if cast metadata cannot be set.
     }
-  }, [video?.url, video?.designation, video?.category_name, video?.cover]);
+  }, [previewUrl, previewImage, requestHeaders, token, video?.designation, video?.category_name]);
 
   const onStartVideo = () => {
     if (!slug) return;
@@ -87,7 +175,32 @@ export default function VideoPreviewScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: pageBg }]}> 
       <ScrollView contentContainerStyle={styles.content}>
-        {!!video?.cover && <Image source={{ uri: video.cover }} style={[styles.cover, { backgroundColor: isDark ? '#1B2026' : '#d1d5db' }]} />}
+        <View style={[styles.mediaCard, { backgroundColor: surface, borderColor: border }]}>
+          {previewUrl ? (
+            <View style={styles.playerWrap}>
+              <VideoView
+                style={styles.videoPreview}
+                player={player}
+                allowsFullscreen
+                nativeControls
+                contentFit="contain"
+              />
+
+              {!previewReady && !previewError && (
+                <View style={styles.loaderOverlay}>
+                  <ActivityIndicator size="large" color="#ffffff" />
+                </View>
+              )}
+            </View>
+          ) : previewImage ? (
+            <Image source={{ uri: previewImage }} style={[styles.cover, { backgroundColor: isDark ? '#1B2026' : '#d1d5db' }]} />
+          ) : (
+            <View style={[styles.previewFallback, { backgroundColor: isDark ? '#1B2026' : '#EEF2F6' }]}>
+              <Text style={[styles.previewFallbackTitle, { color: text }]}>Aperçu indisponible</Text>
+              <Text style={[styles.previewFallbackText, { color: muted }]}>La vidéo peut être lancée directement ci-dessous.</Text>
+            </View>
+          )}
+        </View>
 
         <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}> 
           <Text style={[styles.title, { color: text }]}>{video?.designation ?? 'Video'}</Text>
@@ -108,12 +221,16 @@ export default function VideoPreviewScreen() {
             {video?.description || "Aucune description disponible pour cette vidéo."}
           </Text>
 
+          {!!previewError && (
+            <Text style={styles.inlineError}>{previewError}</Text>
+          )}
+
           <View style={styles.actionWrap}>
             <ButtonSimple
               text={loading ? 'Chargement...' : 'Lancer la vidéo'}
               color={Colors.primary}
               onPress={onStartVideo}
-              disabled={loading || !video}
+              disabled={loading || !video?.url}
             />
           </View>
         </View>
@@ -130,11 +247,47 @@ const styles = StyleSheet.create({
     padding: 14,
     paddingBottom: 28,
   },
+  mediaCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  playerWrap: {
+    position: 'relative',
+    width: '100%',
+    height: 220,
+    backgroundColor: '#000',
+  },
+  videoPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.22)',
+  },
   cover: {
     width: '100%',
     height: 220,
-    borderRadius: 14,
-    marginBottom: 12,
+  },
+  previewFallback: {
+    width: '100%',
+    height: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  previewFallbackTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  previewFallbackText: {
+    fontSize: 13,
+    textAlign: 'center',
   },
   card: {
     borderRadius: 14,
@@ -180,6 +333,12 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  inlineError: {
+    marginTop: 10,
+    color: '#D94B4B',
+    fontSize: 13,
+    fontWeight: '600',
   },
   actionWrap: {
     marginTop: 16,
