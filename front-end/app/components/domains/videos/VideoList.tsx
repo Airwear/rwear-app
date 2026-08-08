@@ -2,9 +2,26 @@ import { View, FlatList, Pressable, StyleSheet, Text, Image } from "react-native
 import { VideoRawType } from "@/utils/type-def";
 import Colors from "@/constants/Colors";
 import { Link } from "expo-router";
-import axios from "axios";
+import { useMemo } from "react";
+import { resolvedBaseURL } from "@/services/api";
 
 export default function VideoList({list} : {list: VideoRawType[]}) {
+
+    const baseWebUrl = useMemo(() => resolvedBaseURL.replace(/\/api\/?$/, ''), []);
+
+    const getCoverUri = (rawCover?: string) => {
+        const raw = (rawCover || '').trim();
+
+        if (!raw) {
+            return '';
+        }
+
+        const absolute = /^https?:\/\//i.test(raw)
+            ? raw
+            : `${baseWebUrl}${raw.startsWith('/') ? '' : '/'}${raw}`;
+
+        return encodeURI(absolute);
+    };
 
     const renderItem = ({ item, index }: any) => (
         <Link
@@ -18,7 +35,7 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
             push
         >
             <Pressable style={styles.renderItem}>
-                <Image style={styles.image} source={{uri: item.cover}} />
+                <Image style={styles.image} source={{uri: getCoverUri(item.cover)}} />
                 <View style={styles.textContainer}>
                     <Text style={styles.title}>{item.designation}</Text>
                     <Text style={styles.details}>{item.duration_in_text}</Text>

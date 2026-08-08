@@ -4,8 +4,6 @@ import Colors from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/hooks";
-import { useGuestGuard } from "@/hooks";
-import GuestConversionModal from "./GuestConversionModal";
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { cancelScheduledReminder, loadReminderSettings, saveReminderSettings, scheduleDailyReminder } from '@/utils/dailyReminder';
 import { applyThemePreference, getThemePreference, setThemePreference } from '@/utils/themePreference';
@@ -81,7 +79,6 @@ export default function Settings() {
     const border = isDark ? '#2A2E34' : '#E8EBEF';
     const muted = isDark ? '#9AA3AD' : '#9AA0A6';
     const { deleteAccount } = useAuth();
-    const { requireAuth, guestModalVisible, closeGuestModal } = useGuestGuard();
     const [deleting, setDeleting] = React.useState(false);
     const router = useRouter();
     const [reminderEnabled, setReminderEnabled] = React.useState(false);
@@ -135,7 +132,6 @@ export default function Settings() {
     };
 
     const onDeletePress = () => {
-        requireAuth(() => {
         Alert.alert(
             "Suppression du compte",
             "Cette action est irréversible. Voulez-vous vraiment supprimer votre compte ?",
@@ -158,7 +154,6 @@ export default function Settings() {
                 }
             ]
         );
-        });
     };
 
     const persistReminder = async (enabled: boolean, date: Date, notificationId: string | null) => {
@@ -246,7 +241,7 @@ export default function Settings() {
                     icon="person-outline"
                     label="Mon compte"
                     value="Modifier"
-                    onPress={() => requireAuth(() => router.push('/edit-user'))}
+                    onPress={() => router.push('/edit-user')}
                 />
             </View>
 
@@ -335,8 +330,6 @@ export default function Settings() {
                 </Pressable>
                 <Text style={[styles.deleteHint, { color: muted }]}>Cette action est irreversible.</Text>
             </View>
-
-            <GuestConversionModal visible={guestModalVisible} onClose={closeGuestModal} />
         </View>
     )
 }

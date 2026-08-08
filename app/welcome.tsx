@@ -5,11 +5,9 @@ import { FlexContainer, ImageViewer } from '@/components';
 import { ButtonSimple } from '@/components/buttons';
 import Colors from '@/constants/Colors';
 import { icons } from '@/utils';
-import { useAuth } from '@/hooks';
 import { useTranslation } from 'react-i18next';
 
 export default function WelcomeScreen() {
-  const { signInAsGuest } = useAuth();
   const scheme = useColorScheme();
   const bg = scheme === 'dark' ? Colors.dark.background : Colors.light.background;
   const { t } = useTranslation();
@@ -20,11 +18,6 @@ export default function WelcomeScreen() {
 
   const goToRegister = () => {
     router.push('/register');
-  };
-
-  const goAsGuest = () => {
-    signInAsGuest();
-    router.replace('/(app)');
   };
 
   return (
@@ -57,14 +50,6 @@ export default function WelcomeScreen() {
               text={t('welcome.register')}
               color={Colors.danger}
               onPress={goToRegister}
-            />
-
-            <View style={styles.spaceSm} />
-
-            <ButtonSimple
-              text={t('welcome.guest')}
-              color={Colors.muted}
-              onPress={goAsGuest}
             />
           </View>
 

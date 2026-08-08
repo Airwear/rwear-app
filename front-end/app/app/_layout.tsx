@@ -60,6 +60,18 @@ function RootAppLayout() {
   return (
     <Stack>
       <Stack.Screen
+        name="sign-in"
+        options={{ headerShown: true, title: 'Connexion' }}
+      />
+      <Stack.Screen
+        name="register"
+        options={{ headerShown: true, title: 'Inscription' }}
+      />
+      <Stack.Screen
+        name="forgot-password"
+        options={{ headerShown: true, title: 'Mot de passe oublié' }}
+      />
+      <Stack.Screen
         name="(app)"
         options={{ headerShown: false, title: 'Accueil' }}
       />

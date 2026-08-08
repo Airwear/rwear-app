@@ -1,19 +1,28 @@
-# AIRWEAR v5 - Google Play Store 2025 Compliance Report
+# AIRWEAR v5 - Google Play Store Compliance Report
 
 ## Build Information
-- **Version Name**: 1.0.5
-- **Version Code**: 11
-- **Build Type**: Release (AAB - Android App Bundle)
-- **File Size**: 64.55 MB
+- **Version Name**: 1.0.10
+- **Version Code**: 18
+- **Build Type**: Release (AAB + APK)
 - **Signing Key**: `@12345dom__rwear-app.jks`
-- **Signature**: Keystore signed (Production ready)
+- **Signature**: Keystore signed
+- **Runtime Status**: Runtime validation required before publication
 
-## Google Play 2025 Requirements ✅
+## Google Play Policy Update - August 2026
+
+- **Requirement**: l'application doit cibler Android 16 (niveau d'API 36) ou une version ulterieure.
+- **Deadline Google Play**: 30 aout 2026.
+- **Previous non-compliant target**: Android 15 (niveau d'API 35).
+- **Action required to keep updates enabled**:
+  1. Mettre l'application a jour vers Android 16 (API 36) ou plus.
+  2. Publier une version conforme en `versionCode 18` / `versionName 1.0.10`.
+
+## Google Play Requirements
 
 ### 1. **Target API Level**
-- ✅ **targetSdkVersion**: 35 (Android 15)
-- ✅ **compileSdkVersion**: 35
-- ✅ **Status**: COMPLIANT (Google Play requires API 35+ as of Nov 2024)
+- ✅ **targetSdkVersion**: 36 (Android 16)
+- ✅ **compileSdkVersion**: 36
+- ✅ **Status**: CONFIGURED FOR COMPLIANCE WITH THE 30 AUGUST 2026 RULE
 
 ### 2. **Minimum API Level**
 - ✅ **minSdkVersion**: 24 (Android 7.0)
@@ -22,13 +31,12 @@
 ### 3. **Android App Bundle (AAB)**
 - ✅ **Format**: App Bundle (.aab)
 - ✅ **Dynamic Delivery**: Enabled
-- ✅ **Size Compression**: Reduced to 64.55 MB
-- ✅ **Status**: COMPLIANT (APK from Google Play will be optimized per device)
+- ✅ **Status**: Supported
 
 ### 4. **Java Version**
 - ✅ **languageVersion**: Java 17
 - ✅ **jvmTarget**: 17
-- ✅ **Kotlin**: 1.9.25
+- ✅ **Kotlin**: 2.0.21 on the root Android build line
 - ✅ **Status**: COMPLIANT
 
 ### 5. **64-bit Support**
@@ -60,10 +68,9 @@
 - ✅ **Status**: COMPLIANT
 
 ### 9. **ProGuard/Minification**
-- ✅ **minifyEnabled**: false (disabled for development)
-- ✅ **shrinkResources**: false
-- ✅ **Note**: Can be enabled for production size optimization
-- ✅ **Status**: SAFE (no obfuscation issues)
+- ✅ **minifyEnabled**: true
+- ✅ **shrinkResources**: true
+- ✅ **Status**: ENABLED ON RELEASE BUILDS
 
 ### 10. **Edge-to-Edge & Notch Support**
 - ✅ **SafeAreaView**: Implemented in video players
@@ -113,17 +120,18 @@ Before uploading to Google Play Console:
 - [ ] Set up App Signing by Google Play (if not using manual signing)
 - [ ] Complete store listing (description, screenshots, categories)
 - [ ] Add app icon (512x512 PNG)
-- [ ] Test on multiple devices (Android 7 - Android 15)
+- [ ] Test on multiple devices (Android 7 - Android 16)
 - [ ] Verify HTTPS API endpoint is working
 - [ ] Test user authentication flow
 - [ ] Test video casting functionality
+- [ ] Validate the new APK and AAB on real devices because a previous generated build was unstable and could close unexpectedly
 
 ## Build Artifacts
 
 | File | Size | Type | Location |
 |------|------|------|----------|
-| AIRWEAR_v5_hybrid_playstore.aab | 64.55 MB | Android App Bundle | Desktop |
-| AIRWEAR_v5_hybrid.apk | 180.08 MB | APK (for testing) | Desktop |
+| app-release.aab | Generated locally | Android App Bundle | android/app/build/outputs/bundle/release |
+| app-release.apk | Generated locally | APK release | android/app/build/outputs/apk/release |
 
 ## Git Tags
 
@@ -141,14 +149,14 @@ Before uploading to Google Play Console:
 
 ## Next Steps
 
-1. Upload AAB to Google Play Console
-2. Set up app store listing
-3. Configure beta testing (optional)
-4. Submit for review (expected 1-2 hours)
-5. Monitor approval status
+1. Rebuild with Android SDK 36 fully installed if the local machine is not yet aligned.
+2. Validate the APK and the AAB on physical devices before any upload.
+3. Upload the validated AAB to Google Play Console.
+4. Set up app store listing and privacy disclosures.
+5. Submit for review only after runtime validation is complete.
 
 ---
 
-**Generated**: December 4, 2025
-**Version**: 1.0.5 (versionCode 11)
-**Status**: ✅ Ready for Google Play Store submission
+**Updated**: August 8, 2026
+**Version**: 1.0.10 (versionCode 18)
+**Status**: Configuration aligned for API 36, runtime validation still required

@@ -19,7 +19,6 @@ import ForgetPasswordLink from './ForgetPasswordLing'
 import { ButtonWithIcon } from './buttons/ButtonSimple'
 import UserHeader from './UserHeader'
 import BadgeIcon from './BadgeIcon'
-import GuestConversionModal from './GuestConversionModal'
 import SelectImage from './SelectImage'
 
 
@@ -47,5 +46,4 @@ export {
     UserHeader,
     BadgeIcon,
     SelectImage,
-    GuestConversionModal,
 }

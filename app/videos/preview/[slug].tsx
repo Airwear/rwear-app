@@ -4,11 +4,9 @@ import Colors from '@/constants/Colors';
 import { useAuth } from '@/contexts/authContext';
 import { _get, apiRoutes, resolvedBaseURL } from '@/services/api';
 import { VideoRawType } from '@/utils/type-def';
-import { useEventListener } from 'expo';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CastContext } from 'react-native-google-cast';
 
@@ -46,7 +44,6 @@ export default function VideoPreviewScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const [loading, setLoading] = useState(false);
   const [video, setVideo] = useState<VideoRawType | null>(null);
-  const [previewReady, setPreviewReady] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const controller = useMemo(() => new AbortController(), []);
   const { authData } = useAuth();
@@ -61,6 +58,7 @@ export default function VideoPreviewScreen() {
   const token = (authData as any)?.token || (authData as any)?.access_token || (authData as any)?.jwt || (authData as any)?.bearer || (authData as any)?.user?.token;
   const previewUrl = useMemo(() => getAbsoluteMediaUrl(video?.url, baseWebUrl), [video?.url, baseWebUrl]);
   const previewImage = useMemo(() => resolvePreviewUri(video, baseWebUrl), [video, baseWebUrl]);
+  const displayImage = previewImage;
 
   const requestHeaders = useMemo(() => {
     const headers: Record<string, string> = {
@@ -76,27 +74,6 @@ export default function VideoPreviewScreen() {
     return headers;
   }, [baseWebUrl, token]);
 
-  const player = useVideoPlayer(previewUrl ? { uri: previewUrl, headers: requestHeaders } : null, instance => {
-    instance.loop = true;
-    instance.muted = true;
-    instance.currentTime = 0;
-    instance.play();
-  });
-
-  useEventListener(player, 'statusChange', ({ status, error }) => {
-    if (error) {
-      const message = typeof error === 'string' ? error : (error as any)?.message || 'Aperçu indisponible pour cette vidéo.';
-      setPreviewReady(false);
-      setPreviewError(message);
-      return;
-    }
-
-    if (status === 'readyToPlay') {
-      setPreviewReady(true);
-      setPreviewError(null);
-    }
-  });
-
   const fetchVideo = async () => {
     if (!slug) {
       setVideo(null);
@@ -104,7 +81,6 @@ export default function VideoPreviewScreen() {
     }
 
     setLoading(true);
-    setPreviewReady(false);
     setPreviewError(null);
     const url = `${apiRoutes.trainings}/${slug}`;
 
@@ -176,24 +152,8 @@ export default function VideoPreviewScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: pageBg }]}> 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.mediaCard, { backgroundColor: surface, borderColor: border }]}>
-          {previewUrl ? (
-            <View style={styles.playerWrap}>
-              <VideoView
-                style={styles.videoPreview}
-                player={player}
-                allowsFullscreen
-                nativeControls
-                contentFit="contain"
-              />
-
-              {!previewReady && !previewError && (
-                <View style={styles.loaderOverlay}>
-                  <ActivityIndicator size="large" color="#ffffff" />
-                </View>
-              )}
-            </View>
-          ) : previewImage ? (
-            <Image source={{ uri: previewImage }} style={[styles.cover, { backgroundColor: isDark ? '#1B2026' : '#d1d5db' }]} />
+          {displayImage ? (
+            <Image source={{ uri: displayImage }} style={[styles.cover, { backgroundColor: isDark ? '#1B2026' : '#d1d5db' }]} />
           ) : (
             <View style={[styles.previewFallback, { backgroundColor: isDark ? '#1B2026' : '#EEF2F6' }]}>
               <Text style={[styles.previewFallbackTitle, { color: text }]}>Aperçu indisponible</Text>
@@ -252,22 +212,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 12,
-  },
-  playerWrap: {
-    position: 'relative',
-    width: '100%',
-    height: 220,
-    backgroundColor: '#000',
-  },
-  videoPreview: {
-    width: '100%',
-    height: '100%',
-  },
-  loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.22)',
   },
   cover: {
     width: '100%',

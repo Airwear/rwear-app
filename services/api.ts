@@ -13,6 +13,7 @@ const URL_MAP = baseRoute + '/map';
 const apiRoutes = {
     login: '/users/login',
     register: '/users/register',
+  forgotPassword: '/users/forgot-password',
     editUser: '/users',
     me: '/users/me',
     resendVerification: '/users/resend-verification',
@@ -84,9 +85,7 @@ axiosInstance.interceptors.response.use(
       } else {
         extractedMessage = error.response.data?.message || `HTTP ${status}`;
       }
-      if (__DEV__) console.error('[API][ERR][RESP]', error.response.status, extractedMessage);
     } else if (error.request) {
-      if (__DEV__) console.error('[API][ERR][NO_RESP]', error.message);
       const rawMessage = String(error?.message || '').toLowerCase();
       if (rawMessage.includes('ssl') || rawMessage.includes('certificate') || rawMessage.includes('cert')) {
         extractedMessage = 'Connexion HTTPS impossible: certificat serveur non valide.';
@@ -98,7 +97,6 @@ axiosInstance.interceptors.response.use(
         extractedMessage = 'Serveur injoignable';
       }
     } else {
-      if (__DEV__) console.error('[API][ERR][CONF]', error.message);
       extractedMessage = error.message;
     }
     // Attache un message propre pour le catch
@@ -154,6 +152,7 @@ async function pingBackend(): Promise<boolean> {
 }
 
 export {
+  axiosInstance,
   _post,
   _get,
   _put,

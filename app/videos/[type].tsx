@@ -28,7 +28,6 @@ export default function VideoTypeListScreen() {
   const url = apiRoutes.trainings + '?category_id=' + type
 
   const _fecth = () => {
-
     isLoading(true);
 
     _get(url, controller)
@@ -51,7 +50,7 @@ export default function VideoTypeListScreen() {
     useEffect( () => {
         _fecth()
         //return () => controller.abort()
-    }, [])
+    }, [type])
 
   useEffect(() => {
 

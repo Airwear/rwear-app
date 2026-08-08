@@ -1,6 +1,22 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+function useSessionExpiredInterceptor(setSessionExpired: (v: boolean) => void) {
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      response => response,
+      async error => {
+        if (error.response?.status === 401) {
+          setSessionExpired(true);
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [setSessionExpired]);
+}
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
   id: string;
@@ -18,16 +34,14 @@ interface AuthContextType {
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
+  sessionExpired: boolean;
+  setSessionExpired: (expired: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Base URL configurable via EXPO_PUBLIC_API_URL; fallback vers prod connue
 const RAW_API = process.env.EXPO_PUBLIC_API_URL || 'https://rwear-sport.octet-group.org/api';
-// Normaliser: enlever slash final
-const API_BASE = RAW_API.replace(/\/+$/,'');
-
-// Essais d'endpoints (avec et sans préfixe /api)
+const API_BASE = RAW_API.replace(/\/+$/, '');
 const LOGIN_ENDPOINTS = [
   '/users/login',
   '/login',
@@ -56,6 +70,10 @@ const DELETE_ACCOUNT_ENDPOINTS = [
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  // Active l'intercepteur 401 pour la session expirée
+  useSessionExpiredInterceptor(setSessionExpired);
 
   useEffect(() => {
     loadStoredAuth();
@@ -178,6 +196,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         deleteAccount,
         updateUser,
+        sessionExpired,
+        setSessionExpired,
       }}
     >
       {children}

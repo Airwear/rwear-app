@@ -52,7 +52,6 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
 
     const resolvePreviewCandidates = (item: VideoRawType) => {
         const anyItem = item as any;
-        const mediaUrl = toAbsoluteUrl(item.url);
         const directSources = [
             toAbsoluteUrl(item.cover),
             toAbsoluteUrl(anyItem.thumbnail),
@@ -60,17 +59,7 @@ export default function VideoList({list} : {list: VideoRawType[]}) {
             toAbsoluteUrl(anyItem.preview),
         ].filter(Boolean);
 
-        const derivedSources = mediaUrl && mediaUrl.toLowerCase().includes('.mp4')
-            ? [
-                mediaUrl.replace(/\.mp4(\?.*)?$/i, '.jpg$1'),
-                mediaUrl.replace(/\.mp4(\?.*)?$/i, '.jpeg$1'),
-                mediaUrl.replace(/\.mp4(\?.*)?$/i, '.png$1'),
-                mediaUrl.replace(/\/([^\/?#]+)\.mp4(\?.*)?$/i, '/thumbnail.jpg$2'),
-                mediaUrl.replace(/\/([^\/?#]+)\.mp4(\?.*)?$/i, '/poster.jpg$2'),
-            ]
-            : [];
-
-        return [...new Set([...directSources, ...derivedSources])];
+        return [...new Set(directSources)];
     };
 
     const VideoThumb = ({ item }: { item: VideoRawType }) => {

@@ -6,8 +6,6 @@ import Title from "@/components/Title";
 import { useEffect, useMemo, useState } from "react";
 import Loader from "@/components/Loader";
 import { _get, apiRoutes } from "@/services/api";
-import { useGuestGuard } from "@/hooks";
-import GuestConversionModal from "@/components/GuestConversionModal";
 
 export default function VideoTypeList() {
 
@@ -22,10 +20,8 @@ export default function VideoTypeList() {
     const [list, setList] = useState<VideoType[]>([]);
     const [loading, isLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
-    const { isGuest, requireAuth, guestModalVisible, closeGuestModal } = useGuestGuard();
     const controller = useMemo(() => new AbortController(), []);
-
-    const visibleList = isGuest ? list.slice(0, 3) : list;
+    const visibleList: VideoType[] = list;
 
     useEffect(() => {
         isLoading(true);
@@ -41,38 +37,53 @@ export default function VideoTypeList() {
                 setList(items);
             })
             .catch((err: any) => {
-                setList([]);
-                setError(err?.friendlyMessage || err?.response?.data?.message || 'Impossible de charger les categories video.');
+                const status = err?.response?.status;
+                if (status === 401 || status === 403) {
+                    setList([]);
+                    setError('Connectez-vous pour retrouver toutes vos seances.');
+                } else {
+                    setList([]);
+                    setError(err?.friendlyMessage || 'Impossible de charger les categories video.');
+                }
             })
             .finally(() => isLoading(false));
 
         return () => controller.abort();
     }, [controller])
 
-    const renderItem = ({ item }: any) => (
-        <Link
-            href={{
-                pathname: '/videos/[type]',
-                params: {type: item.id}
-            }}
-            asChild
-        >
-            <Pressable style={({ pressed }) => [styles.renderItem, { backgroundColor: surface, borderColor: border, shadowColor: text }, pressed && styles.renderItemPressed]}>
-                <ImageBackground source={{uri: item.image}} style={[styles.image, {backgroundColor: Colors.black}]}> 
-                    <View style={styles.imageOverlay} />
-                    <View style={styles.imageTopRow}>
-                        <View style={[styles.countBadge, { backgroundColor: Colors.orange }]}> 
-                            <Text style={styles.countBadgeText}>{item.trainings_count || 0}</Text>
-                        </View>
-                        <View style={styles.livePill}>
-                            <Text style={styles.livePillText}>VIDEOS</Text>
-                        </View>
+    const renderItem = ({ item }: any) => {
+        const hasImage = typeof item.image === 'string' && item.image.trim().length > 0;
+        const mediaContent = (
+            <>
+                <View style={styles.imageOverlay} />
+                <View style={styles.imageTopRow}>
+                    <View style={[styles.countBadge, { backgroundColor: Colors.orange }]}> 
+                        <Text style={styles.countBadgeText}>{item.trainings_count || 0}</Text>
                     </View>
-                    <View style={styles.headerBlock}>
-                        <Text style={[styles.title, { color: Colors.white }]} numberOfLines={2}>{item.designation}</Text>
-                        <Text style={[styles.subtitle, { color: '#E8EBEF' }]}>Decouvrir les seances</Text>
+                    <View style={styles.livePill}>
+                        <Text style={styles.livePillText}>VIDEOS</Text>
                     </View>
-                </ImageBackground>
+                </View>
+                <View style={styles.headerBlock}>
+                    <Text style={[styles.title, { color: Colors.white }]} numberOfLines={2}>{item.designation}</Text>
+                    <Text style={[styles.subtitle, { color: '#E8EBEF' }]}>Decouvrir les seances</Text>
+                </View>
+            </>
+        );
+
+        const card = (
+            <Pressable
+                style={({ pressed }) => [styles.renderItem, { backgroundColor: surface, borderColor: border, shadowColor: text }, pressed && styles.renderItemPressed]}
+            >
+                {hasImage ? (
+                    <ImageBackground source={{uri: item.image}} style={[styles.image, {backgroundColor: Colors.black}]}> 
+                        {mediaContent}
+                    </ImageBackground>
+                ) : (
+                    <View style={[styles.image, styles.imageFallback, { backgroundColor: isDark ? '#1B2026' : '#15181d' }]}> 
+                        {mediaContent}
+                    </View>
+                )}
 
                 {item.info !== undefined && (
                     <View style={styles.description}>
@@ -84,8 +95,20 @@ export default function VideoTypeList() {
                     <Text style={[styles.cardFooterText, { color: muted }]}>Voir les videos de cette categorie</Text>
                 </View>
             </Pressable>
-        </Link>
-    );
+        );
+
+        return (
+            <Link
+                href={{
+                    pathname: '/videos/[type]',
+                    params: {type: item.id}
+                }}
+                asChild
+            >
+                {card}
+            </Link>
+        );
+    };
 
     const separator = () => <View style={styles.separator} />;
 
@@ -93,14 +116,13 @@ export default function VideoTypeList() {
         return <Loader visible={loading} />
     }
 
-    if (list.length === 0) {
+    if (visibleList.length === 0) {
         return (
             <View style={styles.container}>
                 <Title text={title} size={20} weight="bold" push={2} />
                 <Text style={[styles.text, { color: muted }]}>
                     {error || 'Aucune categorie video disponible pour le moment.'}
                 </Text>
-                <GuestConversionModal visible={guestModalVisible} onClose={closeGuestModal} />
             </View>
         );
     }
@@ -108,11 +130,7 @@ export default function VideoTypeList() {
     return (
         <View style={styles.container}>
             <Title text={title} size={20} weight="bold" push={2} />
-            <Text style={[styles.text, { color: muted }]}>
-                {isGuest
-                    ? 'Mode invite: seulement quelques categories sont visibles. Connectez-vous pour tout voir.'
-                    : 'Choisissez la categorie de votre choix pour vos entrainements videos.'}
-            </Text>
+            <Text style={[styles.text, { color: muted }]}>Choisissez la categorie de votre choix pour vos entrainements videos.</Text>
             <FlatList
                 data={visibleList}
                 keyExtractor={(item:any) => String(item.id)}
@@ -125,22 +143,6 @@ export default function VideoTypeList() {
                 snapToInterval={290}
                 decelerationRate="fast"
             />
-
-            {isGuest && list.length > 3 ? (
-                <Pressable
-                    style={({ pressed }) => [
-                        styles.seeMoreBtn,
-                        { borderColor: border, backgroundColor: surface },
-                        pressed && styles.renderItemPressed,
-                    ]}
-                    onPress={() => requireAuth()}
-                >
-                    <Text style={[styles.seeMoreText, { color: text }]}>Voir plus de categories</Text>
-                    <Text style={[styles.seeMoreSubtext, { color: muted }]}>Connexion requise pour acceder a tout le catalogue</Text>
-                </Pressable>
-            ) : null}
-
-            <GuestConversionModal visible={guestModalVisible} onClose={closeGuestModal} />
         </View>
     )
 }
@@ -270,6 +272,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+    },
+
+    imageFallback: {
+        overflow: 'hidden',
     },
 
     livePill: {

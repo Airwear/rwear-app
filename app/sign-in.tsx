@@ -52,6 +52,10 @@ export default function IndexScreen() {
     router.push('/register')
   }
 
+  const forgotPassword = () => {
+    router.push('/forgot-password')
+  }
+
   useEffect(() => {
     navigation.setOptions({ 
       title: label.action.login
@@ -136,6 +140,15 @@ export default function IndexScreen() {
               text={label.action.new_account}
               color={Colors.danger}
               onPress={newAccount}
+              disabled={loading}
+            />
+
+            <View style={styles.spaceSm} />
+
+            <ButtonSimple
+              text={'Mot de passe oublié ?'}
+              color={Colors.darkColor}
+              onPress={forgotPassword}
               disabled={loading}
             />
 

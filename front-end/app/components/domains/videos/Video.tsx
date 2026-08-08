@@ -5,16 +5,35 @@ import { Link, router } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import Title from "@/components/Title";
 import { ButtonSimple } from "@/components/buttons";
+import { useMemo } from "react";
+import { resolvedBaseURL } from "@/services/api";
 
 export default function Video(video: VideoRawType) {
 
     const onSelect = (data: VideoRawType) => {
         
     }
+
+    const baseWebUrl = useMemo(() => resolvedBaseURL.replace(/\/api\/?$/, ''), []);
+
+    const coverUri = useMemo(() => {
+        const raw = (video.cover || '').trim();
+
+        if (!raw) {
+            return '';
+        }
+
+        const absolute = /^https?:\/\//i.test(raw)
+            ? raw
+            : `${baseWebUrl}${raw.startsWith('/') ? '' : '/'}${raw}`;
+
+        return encodeURI(absolute);
+    }, [baseWebUrl, video.cover]);
+
     return (
         <View style={styles.container}>
             <View style={styles.cover}>
-                <Image style={styles.image} source={{uri: video.cover}} />
+                <Image style={styles.image} source={{uri: coverUri}} />
             </View>
             <Details {...video} />
             <View style={styles.titleContainer}>

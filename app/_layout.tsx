@@ -117,7 +117,7 @@ function RootAppLayout() {
         options={{
           headerShown: true,
           title: 'Connexion',
-          headerStyle: { backgroundColor: headerBg, borderBottomColor: headerBorder, borderBottomWidth: 1 },
+          headerStyle: { backgroundColor: headerBg },
         }}
       />
       <Stack.Screen
@@ -125,7 +125,15 @@ function RootAppLayout() {
         options={{
           headerShown: true,
           title: 'Inscription',
-          headerStyle: { backgroundColor: headerBg, borderBottomColor: headerBorder, borderBottomWidth: 1 },
+          headerStyle: { backgroundColor: headerBg },
+        }}
+      />
+      <Stack.Screen
+        name="forgot-password"
+        options={{
+          headerShown: true,
+          title: 'Mot de passe oublié',
+          headerStyle: { backgroundColor: headerBg },
         }}
       />
       <Stack.Screen

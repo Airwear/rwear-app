@@ -78,7 +78,6 @@ export default function VideoPlayerScreen() {
     return () => controller.abort()
  
   }, [navigation, pageBg]);
-  
 
   if (loading) {
     return <Loader visible />

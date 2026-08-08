@@ -1,6 +1,7 @@
 import axios from "axios"
 
 const host = 'https://rwear-sport.octet-group.org/api';
+const resolvedBaseURL = host;
 const baseRoute : string = 'https://optikar.octet-group.org';
 
 const URL_POLICY = baseRoute + "https://rwear-sport.octet-group.org/policy"
@@ -10,6 +11,7 @@ const URL_MAP = baseRoute + "/map"
 const apiRoutes = {
     login: '/users/login',
     register: '/users/register',
+    forgotPassword: '/users/forgot-password',
   resendVerification: '/users/resend-verification',
     editUser: '/users',
     passwordResetRawUrl: baseRoute + '/password/reset',
@@ -67,16 +69,7 @@ axiosInstance.interceptors.response.use(
     },
     error => {
       // Gère les erreurs de réponse
-      if (error.response) {
-        // Le serveur a répondu avec un statut différent de 2xx
-        console.error('Error Response:', error.response);
-      } else if (error.request) {
-        // La requête a été envoyée mais aucune réponse n'a été reçue
-        console.error('Error Request:', error.request);
-      } else {
-        // Quelque chose s'est passé lors de la configuration de la requête
-        console.error('Error Message:', error.message);
-      }
+      // erreurs silencieuses
 
       return Promise.reject(error);
     }
@@ -120,9 +113,11 @@ function _get(path: string,  controller: AbortController, headers: any = {}) {
 }
 
 export {
+  axiosInstance,
     _post,
     _get,
     _put,
     apiRoutes,
     webRoutes,
+    resolvedBaseURL,
 }

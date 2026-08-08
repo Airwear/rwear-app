@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build-apk-release",
+			"type": "shell",
+			"command": "cmd /c \"cd /d c:\\Users\\C lient\\Desktop\\rwearapp\\android && set NODE_BINARY=C:\\Users\\C lient\\Desktop\\rwearapp\\scripts\\node20.cmd && set NODE_ENV=production && gradlew.bat --no-daemon app:assembleRelease --console=plain\"",
+			"isBackground": false
+		}
+	]
+}

@@ -1,4 +1,7 @@
 import React, { useEffect } from 'react';
+import SessionExpiredModal from './components/SessionExpiredModal';
+import { useAuth, AuthProvider } from './src/context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, Text, BackHandler, Platform, ToastAndroid } from 'react-native';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
@@ -6,13 +9,30 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import type { RootStackParamList } from './src/navigation';
-import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { CastProvider } from './src/context/CastContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 
+
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
 const rootRoutes: Array<keyof RootStackParamList> = ['Login', 'Welcome', 'Home'];
+
+function RootWithSessionModal() {
+  const { sessionExpired, setSessionExpired } = useAuth();
+  const navigation = useNavigation();
+
+  const handleReconnect = () => {
+    setSessionExpired(false);
+    navigation.navigate('Login' as never);
+  };
+
+  return (
+    <>
+      <StartupGate />
+      <SessionExpiredModal visible={sessionExpired} onReconnect={handleReconnect} />
+    </>
+  );
+}
 
 function StartupGate() {
   const { isDark } = useTheme();
@@ -84,7 +104,7 @@ export default function App() {
           <ThemeProvider>
             <AuthProvider>
               <CastProvider>
-                <StartupGate />
+                <RootWithSessionModal />
               </CastProvider>
             </AuthProvider>
           </ThemeProvider>

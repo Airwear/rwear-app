@@ -47,6 +47,20 @@ export default function Player1(video: VideoRawType) {
     return encodeURI(absolute);
   }, [baseWebUrl, video.url]);
 
+  const coverImageUrl = useMemo(() => {
+    const raw = (video.cover || '').trim();
+
+    if (!raw) {
+      return '';
+    }
+
+    const absolute = /^https?:\/\//i.test(raw)
+      ? raw
+      : `${baseWebUrl}${raw.startsWith('/') ? '' : '/'}${raw}`;
+
+    return encodeURI(absolute);
+  }, [baseWebUrl, video.cover]);
+
   const requestHeaders = useMemo(() => {
     const headers: Record<string, string> = {
       Accept: '*/*',
@@ -126,7 +140,7 @@ export default function Player1(video: VideoRawType) {
             metadataType: 0,
             title: video.designation || 'Video',
             subtitle: video.category_name || 'AIRWEAR',
-            images: video.cover ? [{ url: video.cover }] : [],
+            images: coverImageUrl ? [{ url: coverImageUrl }] : [],
           },
           customData: {
             autoPlay: true,
@@ -141,7 +155,7 @@ export default function Player1(video: VideoRawType) {
     } catch {
       // Keep playback functional if cast metadata cannot be prepared.
     }
-  }, [normalizedUrl, requestHeaders, token, video.designation, video.category_name, video.cover]);
+  }, [normalizedUrl, requestHeaders, token, video.designation, video.category_name, coverImageUrl]);
 
   const castButtonStyle = orientation === 'landscape' ? styles.castButtonLandscape : styles.castButtonPortrait;
   const showLoader = !playerError && status !== 'readyToPlay';

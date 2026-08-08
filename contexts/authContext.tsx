@@ -2,7 +2,7 @@ import React, {createContext, useState, useEffect, useContext} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContextType, AuthDataType } from '@/utils/type-def';
 import axios from 'axios';
-import { _post, _put, _get, apiRoutes, setAuthToken, resolvedBaseURL } from '@/services/api';
+import { _post, _put, _get, apiRoutes, setAuthToken, resolvedBaseURL, axiosInstance } from '@/services/api';
 import { Loader } from '@/components';
 
 //Create the Auth Context with the data type specified
@@ -10,6 +10,8 @@ import { Loader } from '@/components';
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 const AuthStorageKey = '@baseapp'
+const LastActivityStorageKey = '@lastActivityAt'
+const InactivityTimeoutMs = 30 * 60 * 1000;
 
 function resolveEmailVerified(payload: any): boolean {
   if (!payload) return false;
@@ -51,25 +53,112 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
   const [loading, setLoading] = useState<boolean>(true);
   const [registering, setRegistering] = useState<boolean>(false);
   const [updating, setUpdating] = useState<boolean>(false);
+  const [refreshingSession, setRefreshingSession] = useState<boolean>(false);
   const [logged, isLogged] = useState<boolean>(false);
-  const [isGuest, setIsGuest] = useState<boolean>(false);
   const [emailVerified, setEmailVerified] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [baseUrl, setBaseUrl] = useState<string>();
+  const lastActivityWriteRef = React.useRef<number>(0);
 
-  const controller = new AbortController
+  const touchActivity = async (force = false) => {
+    const now = Date.now();
+    if (!force && now - lastActivityWriteRef.current < 60_000) {
+      return;
+    }
+    lastActivityWriteRef.current = now;
+    await AsyncStorage.setItem(LastActivityStorageKey, String(now));
+  };
+
+  // Ajout pour gestion du refresh token
+  const RefreshTokenStorageKey = '@refreshToken';
+
+  // Fonction pour rafraîchir le token d'accès
+  const refreshToken = async () => {
+    const refreshToken = await AsyncStorage.getItem(RefreshTokenStorageKey);
+    if (!refreshToken) return false;
+    setRefreshingSession(true);
+    try {
+      // À adapter selon ton endpoint de refresh
+      const response = await _post('/users/refresh', { refresh_token: refreshToken }, controller);
+      const { access_token, refresh_token: newRefreshToken, ...rest } = response.data || response;
+      if (access_token) {
+        setAuthToken(access_token);
+        const nextAuthData = { ...(authData || {}), token: access_token, ...rest };
+        setAuthData(nextAuthData);
+        await AsyncStorage.setItem(AuthStorageKey, JSON.stringify(nextAuthData));
+        if (newRefreshToken) await AsyncStorage.setItem(RefreshTokenStorageKey, newRefreshToken);
+        return true;
+      }
+    } catch (e) {
+      return false;
+    } finally {
+      setRefreshingSession(false);
+    }
+    return false;
+  };
+
+  // Intercepteur global pour gérer les erreurs 401 et tenter un refresh automatique
+  React.useEffect(() => {
+    const interceptor = axiosInstance.interceptors.response.use(
+      response => {
+        if (logged) {
+          touchActivity().catch(() => {});
+        }
+        return response;
+      },
+      async error => {
+        const originalRequest = error.config;
+        const requestUrl = String(originalRequest?.url || '');
+        const isRefreshCall = requestUrl.includes('/users/refresh');
+        const isSignInCall = requestUrl.includes('/users/login') || requestUrl.includes('/login') || requestUrl.includes('/auth/login');
+        const isRegisterCall = requestUrl.includes('/users/register');
+        const isPublicAuthCall = isSignInCall || isRegisterCall;
+
+        if (error.response && error.response.status === 401 && !originalRequest?._retry && !isRefreshCall && !isPublicAuthCall) {
+          // N'affiche jamais "Session expirée" tant qu'il n'y a pas de session active.
+          if (!logged && !authData) {
+            return Promise.reject(error);
+          }
+
+          originalRequest._retry = true;
+          const refreshed = await refreshToken();
+          if (refreshed) {
+            await touchActivity(true);
+            const authHeader = axiosInstance.defaults.headers.Authorization;
+            originalRequest.headers = {
+              ...(originalRequest.headers || {}),
+              ...(authHeader ? { Authorization: authHeader as string } : {}),
+            };
+            return axiosInstance(originalRequest);
+          } else {
+            const lastActivityRaw = await AsyncStorage.getItem(LastActivityStorageKey);
+            const lastActivityAt = Number(lastActivityRaw || '0');
+            const inactiveTooLong = lastActivityAt > 0 && (Date.now() - lastActivityAt >= InactivityTimeoutMs);
+
+            if (inactiveTooLong) {
+              setError('Session expirée, veuillez vous reconnecter.');
+            }
+            await signOut();
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => {
+      axiosInstance.interceptors.response.eject(interceptor);
+    };
+  }, [authData, logged]);
+
+  const controller = React.useMemo(() => new AbortController(), []);
 
 
   useEffect(() => {
-
-    //Every time the App is opened, this provider is rendered
-    //and call de loadStorage function.
+    // Every time the provider mounts, load persisted auth state.
     loadStorageData();
 
-    return () => controller.abort()
-    
-  }, [logged]);
+    return () => controller.abort();
+  }, []);
 
   async function loadStorageData(): Promise<void> {
 
@@ -77,7 +166,6 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
       setLoading(true);
 
-      //Try retrieving the data from Async Storage
       const authDataSerialized = await AsyncStorage.getItem(AuthStorageKey);
 
       if (authDataSerialized !== null) {
@@ -87,13 +175,18 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
         setAuthData(_authData);
         // Injecte le token sauvegardé s'il existe
         setAuthToken(_authData?.token || _authData?.access_token || _authData?.jwt || _authData?.bearer || _authData?.user?.token);
-        setIsGuest(false);
         isLogged(true);
         setEmailVerified(resolveEmailVerified(_authData));
+        await touchActivity(true);
 
         //console.log('AuthContext@loadStorageData_', _authData)
         //console.log('AuthContext@isLogged', logged)
 
+      } else {
+        setAuthData(undefined);
+        setAuthToken(undefined);
+        isLogged(false);
+        setEmailVerified(false);
       }
     } catch (error) {
 
@@ -156,12 +249,17 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
     if (token) {
       setAuthToken(token);
+      await touchActivity(true);
     } else if (__DEV__) {
       console.warn('[AUTH][LOGIN] Token manquant – utilisateur tout de même stocké');
     }
 
+    // Stocke aussi le refresh token si présent
+    if (userData.refresh_token) {
+      await AsyncStorage.setItem(RefreshTokenStorageKey, userData.refresh_token);
+    }
+
     setAuthData(userData);
-    setIsGuest(false);
     AsyncStorage.setItem(AuthStorageKey, JSON.stringify(userData));
     isLogged(true);
     setEmailVerified(resolveEmailVerified(userData));
@@ -174,60 +272,46 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
 
     if (!userSlug || userSlug === 'undefined') {
       setError('Impossible de mettre à jour le profil : identifiant utilisateur manquant.');
-      return Promise.resolve(null);
+      return null;
     }
 
     setUpdating(true);
-
     setError('');
-
     setMessage('');
 
-    console.log('data', data)
+    try {
+      const response = await _put(apiRoutes.editUser + '/' + userSlug, {...data, slug: userSlug}, controller);
+      const { message, data: updatedData, error } = response || {};
 
-    _put(apiRoutes.editUser + '/' + userSlug, {...data, slug: userSlug}, controller)
-        .then(response => {
-          
-          const {message, data: updatedData, error} = response || {};
-          
-          if(error) {
-            setError(toSafeUserError(message, 'Impossible de mettre à jour le profil pour le moment.'))
-          } else {
+      if (error) {
+        setError(toSafeUserError(message, 'Impossible de mettre à jour le profil pour le moment.'));
+        return null;
+      }
 
-            const nextAuthData = updatedData || { ...(authData as any), ...data, slug: userSlug };
-            setMessage((message && String(message).trim() && String(message).trim() !== 'undefined') ? String(message) : 'Profil mis à jour.');
-            setAuthData(nextAuthData);
-
-            AsyncStorage.setItem(AuthStorageKey, JSON.stringify(nextAuthData));
-
-          }
-        })
-        .catch(error => setError(toSafeUserError(error, 'Impossible de mettre à jour le profil pour le moment.')))
-        .finally(() => setUpdating(false))
+      const nextAuthData = updatedData || { ...(authData as any), ...data, slug: userSlug };
+      setMessage((message && String(message).trim() && String(message).trim() !== 'undefined') ? String(message) : 'Profil mis à jour.');
+      setAuthData(nextAuthData);
+      await AsyncStorage.setItem(AuthStorageKey, JSON.stringify(nextAuthData));
+      return nextAuthData;
+    } catch (error) {
+      setError(toSafeUserError(error, 'Impossible de mettre à jour le profil pour le moment.'));
+      return null;
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const signOut = async () => {
     setLoading(true);
     setTimeout(async () => {
       await AsyncStorage.removeItem(AuthStorageKey);
+      await AsyncStorage.removeItem(LastActivityStorageKey);
       setAuthToken(undefined);
       setAuthData(undefined);
       isLogged(false);
-      setIsGuest(false);
       setEmailVerified(false);
       setLoading(false);
     }, 500);
-  };
-
-  const signInAsGuest = () => {
-    setIsGuest(true);
-    isLogged(false);
-    setEmailVerified(false);
-    setAuthData(undefined);
-  };
-
-  const signOutGuest = () => {
-    setIsGuest(false);
   };
 
   const setUrl = async (url: string) => {
@@ -297,7 +381,8 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
   };
 
   const deleteAccount = async () => {
-    const token = authData?.token || authData?.access_token || authData?.jwt || authData?.bearer || authData?.user?.token;
+    const authAny = authData as any;
+    const token = authAny?.token || authAny?.access_token || authAny?.jwt || authAny?.bearer || authAny?.user?.token;
     const userRef = authData?.slug || authData?.id;
     const endpoints = [
       userRef ? `/users/${userRef}` : undefined,
@@ -328,12 +413,12 @@ const AuthProvider: React.FC = (props: React.PropsWithChildren): any => {
     throw lastError || new Error(serverMsg);
   };
 
-  if(loading) {
+  if(loading || refreshingSession) {
     return <Loader visible />
   }
 
   return (
-    <AuthContext.Provider value={{authData, signIn, update, deleteAccount, signOut, loading, logged, isGuest, emailVerified, register, error, message, updating, registering, setUrl, baseUrl, resendVerificationEmail, refreshUserData, signInAsGuest, signOutGuest}}>
+    <AuthContext.Provider value={{authData, signIn, update, deleteAccount, signOut, loading, logged, emailVerified, register, error, message, updating, registering, setUrl, baseUrl, resendVerificationEmail, refreshUserData}}>
       {props.children}
     </AuthContext.Provider>
   );

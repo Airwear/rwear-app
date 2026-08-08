@@ -24,11 +24,11 @@ export default function TabLayout() {
   const tabBorder = isDark ? '#2A2E34' : '#eceef2';
   const tabInactive = isDark ? '#98A2AD' : Colors.muted;
   const tabActive = Colors.orange;
-  const { logged, emailVerified, isGuest } = useAuth()
+  const { logged, emailVerified } = useAuth()
   // const rootNavigationState = useRootNavigationState();
   // console.log('rootNavigationState', rootNavigationState?.key)
   
-  if (!logged && !isGuest) {
+  if (!logged) {
     return <Redirect href="/sign-in" />;
   }
 

@@ -20,19 +20,16 @@ export type AuthContextType = {
     registering: boolean,
     updating?: boolean,
     logged: boolean,
-    isGuest: boolean,
     emailVerified: boolean,
     error: string,
     message: string,
     baseUrl?: string,
     setUrl(url: string): Promise<any>;
     signIn(email: string, password: string): Promise<any>;
-    signInAsGuest(): void;
     register(email: string, login: string, password: string, fbm_token?: string, extras?: Record<string, any>): Promise<any>;
     update(data : AuthDataType): Promise<any>;
     deleteAccount?: () => Promise<void>;
     signOut(): void;
-    signOutGuest(): void;
     resendVerificationEmail(): Promise<any>;
     refreshUserData(): Promise<boolean>;
 }
