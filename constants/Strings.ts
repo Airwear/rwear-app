@@ -3,6 +3,7 @@ export default {
 
       navigation: {
         home: 'Accueil',
+        services: 'Services',
         search: 'Recherche',
         setting: 'Paramètres',
         preferences: 'Mes assistances',
