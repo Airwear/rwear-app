@@ -1,4 +1,5 @@
 import { MockBookingsSource, type BookingsDataSource } from '@/src/features/services/data/mockBookingsSource';
+import { servicesNotificationsService } from '@/src/features/services/services/servicesNotificationsService';
 import { servicesService } from '@/src/features/services/services/servicesService';
 import {
   addBooking,
@@ -60,6 +61,7 @@ export class BookingsService {
     const sequence = await getNextBookingSequence();
     const booking = buildBooking(sequence, professional, offering, input);
     await addBooking(booking);
+    await servicesNotificationsService.onBookingConfirmed(booking);
     return booking;
   }
 
@@ -74,7 +76,12 @@ export class BookingsService {
     }
 
     await updateBookingStatus(id, 'cancelled');
-    return this.getBookingById(id);
+    const cancelledBooking = await this.getBookingById(id);
+    if (cancelledBooking) {
+      await servicesNotificationsService.onBookingCancelled(cancelledBooking);
+    }
+
+    return cancelledBooking;
   }
 }
 

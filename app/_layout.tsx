@@ -3,6 +3,7 @@ import { AuthProvider } from '@/contexts';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, StrictMode } from 'react';
@@ -19,6 +20,18 @@ import { applyThemePreference, getThemePreference } from '@/utils/themePreferenc
 // <FBMessageProvider>
 // Put the App here
 // </FBMessageProvider>
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    // On affiche explicitement les notifications locales quand l'app est ouverte.
+    // Ce handler global évite que le foreground Android masque silencieusement l'alerte.
+    // Dominik
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export const unstable_settings = {
   // Route d'entrée: écran de bienvenue avant authentification
