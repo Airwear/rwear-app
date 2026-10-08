@@ -1,10 +1,12 @@
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { router } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { FlexContainer, Loader } from '@/components';
 import { ButtonSimple } from '@/components/buttons';
 import { BOOKING_STATUS_LABELS } from '@/src/features/services/components/BookingListItem';
 import { useBookings } from '@/src/features/services/hooks/useBookings';
+import { useBookingConversation } from '@/src/features/services/hooks/useServiceConversations';
 import { Booking } from '@/src/features/services/types';
 
 const MODE_LABELS = {
@@ -16,7 +18,9 @@ const MODE_LABELS = {
 export function BookingDetailScreen({ bookingId }: { bookingId: string }) {
   const { bookings, cancelBooking } = useBookings();
   const booking = bookings.find((item) => item.id === bookingId) || null;
+  const { existingConversation, canContactProfessional, openConversation } = useBookingConversation(booking);
   const [submitting, setSubmitting] = React.useState(false);
+  const [openingConversation, setOpeningConversation] = React.useState(false);
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
   const bg = isDark ? Colors.dark.background : Colors.light.background;
@@ -54,27 +58,57 @@ export function BookingDetailScreen({ bookingId }: { bookingId: string }) {
           <SummaryRow label="Référence" value={booking.id} textColor={text} mutedColor={muted} />
         </View>
 
+        {canContactProfessional ? (
+          <View style={styles.actionWrap}>
+            <ButtonSimple
+              text={existingConversation ? 'Voir la conversation' : 'Contacter le professionnel'}
+              color={Colors.primary}
+              onPress={() => {
+                setOpeningConversation(true);
+                // Le bouton ouvre une conversation liée au rendez-vous courant.
+                // Si elle existe déjà, on réutilise le même thread.
+                openConversation()
+                  .then((conversation) => {
+                    if (!conversation) {
+                      Alert.alert('Messagerie indisponible', 'Ce rendez-vous annulé ne possède pas encore de conversation.');
+                      return;
+                    }
+
+                    router.push(`/services/messages/${conversation.id}`);
+                  })
+                  .finally(() => {
+                    setOpeningConversation(false);
+                  });
+              }}
+              showIndicator={openingConversation}
+              disabled={openingConversation}
+            />
+          </View>
+        ) : null}
+
         {cancellable ? (
-          <ButtonSimple
-            text="Annuler la réservation"
-            color={Colors.danger}
-            onPress={() => {
-              Alert.alert('Annuler la réservation', 'Voulez-vous vraiment annuler cette réservation ?', [
-                { text: 'Non', style: 'cancel' },
-                {
-                  text: 'Oui, annuler',
-                  style: 'destructive',
-                  onPress: async () => {
-                    setSubmitting(true);
-                    await cancelBooking(booking.id);
-                    setSubmitting(false);
+          <View style={styles.actionWrap}>
+            <ButtonSimple
+              text="Annuler la réservation"
+              color={Colors.danger}
+              onPress={() => {
+                Alert.alert('Annuler la réservation', 'Voulez-vous vraiment annuler cette réservation ?', [
+                  { text: 'Non', style: 'cancel' },
+                  {
+                    text: 'Oui, annuler',
+                    style: 'destructive',
+                    onPress: async () => {
+                      setSubmitting(true);
+                      await cancelBooking(booking.id);
+                      setSubmitting(false);
+                    },
                   },
-                },
-              ]);
-            }}
-            showIndicator={submitting}
-            disabled={submitting}
-          />
+                ]);
+              }}
+              showIndicator={submitting}
+              disabled={submitting}
+            />
+          </View>
         ) : null}
       </ScrollView>
     </FlexContainer>
@@ -111,6 +145,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 8,
     fontSize: 13,
+  },
+  actionWrap: {
+    marginBottom: 10,
   },
   summaryRow: {
     marginTop: 10,

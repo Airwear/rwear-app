@@ -82,6 +82,7 @@ export type Booking = {
   id: string;
   professionalId: string;
   professionalName: string;
+  professionalAvatarUrl?: string;
   professionalHeadline: string;
   offeringId: string;
   offeringTitle: string;
@@ -112,4 +113,36 @@ export type CreateBookingInput = {
   startsAt: string;
   endsAt: string;
   clientAddress?: string;
+};
+
+export type ServiceConversationSender = 'client' | 'professional' | 'system';
+
+export type ServiceMessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
+
+export type ServiceConversation = {
+  id: string;
+  professionalId: string;
+  professionalName: string;
+  professionalAvatarUrl?: string;
+  bookingId: string;
+  offeringTitle: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ServiceMessage = {
+  id: string;
+  conversationId: string;
+  sender: ServiceConversationSender;
+  text: string;
+  timestamp: string;
+  status: ServiceMessageStatus;
+};
+
+export type ServiceMessagingState = {
+  conversations: ServiceConversation[];
+  messagesByConversation: Record<string, ServiceMessage[]>;
 };

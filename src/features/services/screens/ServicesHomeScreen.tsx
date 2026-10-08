@@ -5,6 +5,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Colors from '@/constants/Colors';
 import { FlexContainer, Loader, WebMapView } from '@/components';
 import { useServicesCatalog } from '@/src/features/services/hooks/useServicesCatalog';
+import { useServiceConversations } from '@/src/features/services/hooks/useServiceConversations';
 import { ProfessionalCard } from '@/src/features/services/components/ProfessionalCard';
 import { ServicesFilterModal } from '@/src/features/services/components/ServicesFilterModal';
 import { Professional } from '@/src/features/services/types';
@@ -45,6 +46,8 @@ export function ServicesHomeScreen() {
     setCategory,
     toggleFavorite,
   } = useServicesCatalog();
+  // Le résumé Messages repose sur l'état local des conversations (nombre + non lus).
+  const { conversations, totalUnreadCount } = useServiceConversations();
 
   const [filterModalVisible, setFilterModalVisible] = React.useState(false);
   const scheme = useColorScheme();
@@ -182,6 +185,36 @@ export function ServicesHomeScreen() {
               <Text style={[styles.bookingEntryTitle, { color: text }]}>Mes rendez-vous</Text>
               <Text style={[styles.bookingEntrySub, { color: muted }]}>Consultez et gérez vos rendez-vous</Text>
             </View>
+            <FontAwesome name="angle-right" size={18} color={muted} />
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/services/messages')}
+            style={({ pressed }) => [
+              styles.bookingEntry,
+              {
+                backgroundColor: soft,
+                borderColor: border,
+                opacity: pressed ? 0.94 : 1,
+              },
+            ]}
+          >
+            <View style={[styles.bookingIconWrap, { backgroundColor: surface, borderColor: border }]}> 
+              <FontAwesome name="comments" size={16} color={Colors.primary} />
+            </View>
+            <View style={styles.bookingEntryMain}>
+              <Text style={[styles.bookingEntryTitle, { color: text }]}>Messages</Text>
+              <Text style={[styles.bookingEntrySub, { color: muted }]}>
+                {conversations.length > 0
+                  ? `${conversations.length} conversation(s)${totalUnreadCount > 0 ? ` · ${totalUnreadCount} non lu(s)` : ''}`
+                  : 'Discutez avec un professionnel après la création d’un rendez-vous'}
+              </Text>
+            </View>
+            {totalUnreadCount > 0 ? (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadBadgeText}>{totalUnreadCount}</Text>
+              </View>
+            ) : null}
             <FontAwesome name="angle-right" size={18} color={muted} />
           </Pressable>
         </View>
@@ -478,6 +511,20 @@ const styles = StyleSheet.create({
   bookingEntrySub: {
     marginTop: 2,
     fontSize: 12,
+  },
+  unreadBadge: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  unreadBadgeText: {
+    color: Colors.white,
+    fontSize: 11,
+    fontWeight: '800',
   },
   sectionHeadRow: {
     flexDirection: 'row',
