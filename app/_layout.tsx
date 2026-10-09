@@ -4,9 +4,9 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, StrictMode } from 'react';
+import { useCallback, useEffect, StrictMode } from 'react';
 import { useColorScheme } from 'react-native';
 import 'react-native-reanimated';
 // import 'expo-dev-client';   // ❌ retiré pour la build de prod
@@ -15,6 +15,10 @@ import { AppProvider } from '@/contexts/appContext';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { applyThemePreference, getThemePreference } from '@/utils/themePreference';
+import {
+  bootstrapRemotePushNotifications,
+  PushOpenIntent,
+} from '@/src/notifications/remotePushNotificationsService';
 
 // Use Firebase notification
 // <FBMessageProvider>
@@ -92,11 +96,49 @@ export default function RootLayout() {
 }
 
 function RootAppLayout() {
+  const router = useRouter();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
   const headerBg = isDark ? '#121418' : Colors.white;
   const headerBorder = isDark ? '#2A2E34' : '#eceef2';
   const headerText = isDark ? Colors.white : Colors.darkColor;
+
+  const onNotificationOpened = useCallback((intent: PushOpenIntent) => {
+    if (intent.target.kind === 'services-conversation') {
+      router.push(`/services/messages/${intent.target.conversationId}`);
+      return;
+    }
+
+    router.push(`/planning/${intent.target.bookingId}`);
+  }, [router]);
+
+  useEffect(() => {
+    let active = true;
+    let cleanup = () => {};
+
+    const setupRemotePush = async () => {
+      const handle = await bootstrapRemotePushNotifications({
+        requestPermissionsOnStartup: true,
+        onNotificationOpened,
+      });
+
+      if (!active) {
+        handle.cleanup();
+        return;
+      }
+
+      cleanup = handle.cleanup;
+    };
+
+    setupRemotePush().catch((error) => {
+      console.warn('[RemotePush] bootstrap_error', error);
+    });
+
+    return () => {
+      active = false;
+      cleanup();
+    };
+  }, [onNotificationOpened]);
 
   return (
     <>
