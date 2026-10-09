@@ -5,3 +5,4 @@ export { BookingsListScreen } from './BookingsListScreen';
 export { BookingDetailScreen } from './BookingDetailScreen';
 export { ConversationsScreen } from './ConversationsScreen';
 export { ConversationScreen } from './ConversationScreen';
+export { ServiceCallScreen } from './ServiceCallScreen';

@@ -146,3 +146,23 @@ export type ServiceMessagingState = {
   conversations: ServiceConversation[];
   messagesByConversation: Record<string, ServiceMessage[]>;
 };
+
+export type ServiceCallMode = 'voice' | 'video';
+
+// Etat UI du parcours d'appel. Le moteur de communication n'est pas encore branché.
+export type ServiceCallLifecycleState =
+  | 'idle'
+  | 'waiting_for_service'
+  | 'requesting_permissions'
+  | 'ringing'
+  | 'connecting'
+  | 'connected'
+  | 'ended'
+  | 'failed';
+
+export type ServiceCallUiState = {
+  mode: ServiceCallMode;
+  lifecycle: ServiceCallLifecycleState;
+  microphoneEnabled: boolean;
+  cameraEnabled: boolean;
+};

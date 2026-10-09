@@ -14,12 +14,13 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
-import { useNavigation } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Colors from '@/constants/Colors';
 import { FlexContainer, Loader } from '@/components';
 import { MessageBubble } from '@/src/features/services/components/MessageBubble';
 import { useConversationThread } from '@/src/features/services/hooks/useServiceConversations';
+import { ServiceCallMode } from '@/src/features/services/types';
 
 export function ConversationScreen({ conversationId }: { conversationId: string }) {
   const { conversation, messages, loading, sending, sendMessage } = useConversationThread(conversationId);
@@ -104,6 +105,15 @@ export function ConversationScreen({ conversationId }: { conversationId: string 
 
   const canSend = draft.trim().length > 0 && !sending;
 
+  const openCallScreen = (mode: ServiceCallMode) => {
+    if (!conversation) {
+      return;
+    }
+
+    const encodedConversationId = encodeURIComponent(conversation.id);
+    router.push(`/services/messages/${encodedConversationId}/call?mode=${mode}`);
+  };
+
   const handleSend = async () => {
     const messageText = draft.trim();
     if (!messageText) {
@@ -150,6 +160,42 @@ export function ConversationScreen({ conversationId }: { conversationId: string 
         <View style={[styles.bookingCard, { backgroundColor: surface, borderColor: border }]}>
           <Text style={[styles.bookingTitle, { color: text }]} numberOfLines={1}>{conversation.offeringTitle}</Text>
           <Text style={[styles.bookingSub, { color: muted }]} numberOfLines={1}>Rendez-vous {conversation.bookingId}</Text>
+
+          <View style={styles.callActionsRow}>
+            <Pressable
+              onPress={() => openCallScreen('voice')}
+              style={({ pressed }) => [
+                styles.callAction,
+                {
+                  backgroundColor: isDark ? '#1A212C' : '#F4F7FB',
+                  borderColor: border,
+                  opacity: pressed ? 0.92 : 1,
+                },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Ouvrir l'interface d'appel vocal"
+            >
+              <FontAwesome name="phone" size={14} color={Colors.orange} />
+              <Text style={[styles.callActionText, { color: text }]}>Appel vocal</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => openCallScreen('video')}
+              style={({ pressed }) => [
+                styles.callAction,
+                {
+                  backgroundColor: isDark ? '#1A212C' : '#F4F7FB',
+                  borderColor: border,
+                  opacity: pressed ? 0.92 : 1,
+                },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Ouvrir l'interface d'appel vidéo"
+            >
+              <FontAwesome name="video-camera" size={14} color={Colors.orange} />
+              <Text style={[styles.callActionText, { color: text }]}>Appel video</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.messagesWrap}>
@@ -231,6 +277,26 @@ const styles = StyleSheet.create({
   bookingSub: {
     marginTop: 3,
     fontSize: 12,
+  },
+  callActionsRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  callAction: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 12,
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingHorizontal: 10,
+  },
+  callActionText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   messagesContent: {
     flexGrow: 1,
