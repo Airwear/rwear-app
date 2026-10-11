@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useColorScheme } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useColorScheme } from 'react-native';
 import { router } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Colors from '@/constants/Colors';
@@ -391,7 +391,7 @@ export function ServicesHomeScreen() {
           <Text style={[styles.providerSubtitle, { color: muted }]}>Rejoignez notre plateforme et proposez vos services.</Text>
           <Pressable
             onPress={() => {
-              Alert.alert('Bientôt disponible', 'Le parcours prestataire complet sera disponible dans une prochaine phase.');
+              router.push('/services/provider/application-status');
             }}
             style={({ pressed }) => [
               styles.providerBtn,
